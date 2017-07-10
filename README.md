@@ -1,0 +1,2 @@
+# amazing
+Amazing mazes.
