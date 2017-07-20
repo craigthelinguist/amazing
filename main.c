@@ -2,6 +2,7 @@
 #include "game.h"
 #include "graph.h"
 #include "gui.h"
+#include "drawing.h"
 #include <SDL2/SDL.h>
 #include <stdint.h>
 #include <stdio.h>

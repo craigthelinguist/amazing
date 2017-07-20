@@ -1,9 +1,6 @@
 
-
-#include "colors.h"
 #include "gui.h"
-#include <SDL_image.h>
-#include <stdio.h>
+#include <stdlib.h>
 
 struct Gui {
 	SDL_Window *window;
@@ -43,46 +40,15 @@ void GUI_Free(GUI gui) {
 	gui = NULL;
 }
 
-void GUI_DrawImageToScreen(GUI gui, struct Image *image, int x, int y) {
-	SDL_Rect rect = {x, y, image->wd, image->ht};
-	SDL_RenderCopy(gui->renderer, image->texture, NULL, &rect);
-	// Use this for drawing surfaces.
-	// SDL_BlitSurface(image, NULL, SDL_GetWindowSurface(gui->window), NULL);
-}
-
-void GUI_DrawRect(GUI gui, const int64_t x, const int64_t y, const int64_t wd, const int64_t ht) {
-	SDL_Rect rect = {x, y, wd, ht};
-	SDL_RenderDrawRect(gui->renderer, &rect);
-}
-
-void GUI_FillRect(GUI gui, const int64_t x, const int64_t y, const int64_t wd, const int64_t ht) {
-	SDL_Rect rect = {x, y, wd, ht};
-	SDL_RenderFillRect(gui->renderer, &rect);
-}
-						
-							
-void GUI_ClearScreen(GUI gui) {
-	GUI_SetColor2(gui, gui->bgColour);
-	SDL_RenderClear(gui->renderer);
-}
-
-void GUI_RefreshScreen(GUI gui) {
-	SDL_RenderPresent(gui->renderer);
-}
-
-SDL_Renderer *GUI_GetRenderer(GUI gui) {
-	return gui->renderer;
-}
-
 void GUI_SetBackgroundColor(GUI gui, COLOUR colour) {
 	gui->bgColour = colour;
 }
 
-void GUI_SetColor(GUI gui, const int8_t r, const int8_t g, const int8_t b, const int8_t alpha) {
-	SDL_SetRenderDrawColor(gui->renderer, r, g, b, alpha);
+COLOUR GUI_GetBackgroundColor(GUI gui) {
+	return gui->bgColour;
 }
 
-void GUI_SetColor2(GUI gui, struct Color colour) {
-	SDL_SetRenderDrawColor(gui->renderer, colour.red, colour.green, colour.blue, colour.alpha);
+SDL_Renderer *GUI_GetRenderer(GUI gui) {
+	return gui->renderer;
 }
 

@@ -2,8 +2,9 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "gui.h"
+#include "drawing.h"
 #include "graph.h"
+#include "gui.h"
 #include <stdint.h>
 
 void draw_graph(GRAPH graph, GUI gui);
