@@ -28,16 +28,16 @@ int main(int argc, char* argv[]) {
 	}
 	
 	SDL_Init(SDL_INIT_VIDEO);
-	GUI gui = GUI_Make(800, 600);
-	GUI_SetBackgroundColor(gui, (COLOUR) { 120, 120, 120, 255 });
+	GUI gui = make_gui(800, 600);
+	set_bgcol(gui, (Colour) { 120, 120, 120, 255 });
 	
 	GRAPH graph = GRAPH_Make(GRAPH_SIZE);
 	
-	GUI_ClearScreen(gui);
+	clear_screen(gui);
 	
 	draw_graph(graph, gui);
 	
-	GUI_RefreshScreen(gui);
+	refresh_screen(gui);
 	
 	
 	SDL_Delay(5000);

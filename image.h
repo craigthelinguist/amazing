@@ -13,5 +13,7 @@ struct Image {
 	SDL_Texture *texture;
 };
 
+typedef struct Image Image;
+
 #endif
 

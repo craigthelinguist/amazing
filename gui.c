@@ -1,34 +1,67 @@
 
+#include "camera.h"
+#include "colours.h"
 #include "gui.h"
+#include "point.h"
 #include <stdlib.h>
+
 
 struct Gui {
 	SDL_Window *window;
 	SDL_Renderer *renderer;
-	int screenWidth;
-	int screenHeight;
-	COLOUR bgColour;
+	uint16_t screen_wd;
+	uint16_t screen_ht;
+	Colour bgcol;
+	Camera camera;
 };
 
-struct Gui *GUI_Make(const int WIDTH, const int HEIGHT) {	
+GUI make_gui(const uint16_t WIDTH, const uint16_t HEIGHT) {	
 	SDL_Window *window = SDL_CreateWindow("Amazing", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
 	if (window == NULL)
 		return NULL;
 	struct Gui *gui = malloc(sizeof(struct Gui));
 	gui->window = window;
-	gui->screenWidth = WIDTH;
-	gui->screenHeight = HEIGHT;
+	gui->screen_wd = WIDTH;
+	gui->screen_ht = HEIGHT;
 	gui->renderer = SDL_CreateRenderer(window, -1, 0);
+	
 	// Default background colour is white.
-	gui->bgColour = (COLOUR) { 255, 255, 255, 255 };
+	gui->bgcol = make_colour(255, 255, 255, 255);
+	
+	// TODO: default camera position should be (gui->screen_wd, gui->screen_ht)
+	gui->camera = make_camera(0, 0);
+	
 	return gui;
 }
 
-const SDL_PixelFormat *GUI_GetScreenFormat(GUI gui) {
+int32_t xcam(GUI gui) { return gui->camera->centre_x; }
+
+int32_t ycam(GUI gui) { return gui->camera->centre_y; }
+
+
+
+
+Point_Int32 offset_point(GUI gui, uint32_t x, uint32_t y) {
+	
+	// Figure out the (x,y) of the top-left of the camera.
+	Point_Int32 camera_topleft = (Point_Int32) {
+		gui->camera->centre_x - gui->screen_wd/2,
+		gui->camera->centre_y - gui->screen_ht/2
+	};
+	
+	// Offset (x,y) by the camera, so it is relative to (0,0).
+	return (Point_Int32) {
+		x - camera_topleft.x,
+		y - camera_topleft.y
+	};
+	
+}
+
+const SDL_PixelFormat *get_screen_format(GUI gui) {
 	return SDL_GetWindowSurface(gui->window)->format;
 }
 
-void GUI_Free(GUI gui) {
+void free_gui(GUI gui) {
 	SDL_Surface *surface = SDL_GetWindowSurface(gui->window);
 	SDL_FreeSurface(surface);
 	surface = NULL;
@@ -36,19 +69,27 @@ void GUI_Free(GUI gui) {
 	gui->window = NULL;
 	SDL_DestroyRenderer(gui->renderer);
 	gui->renderer = NULL;
+	free_camera(gui->camera);
+	gui->camera = NULL;
 	free(gui);
 	gui = NULL;
 }
 
-void GUI_SetBackgroundColor(GUI gui, COLOUR colour) {
-	gui->bgColour = colour;
+void set_bgcol(GUI gui, Colour colour) {
+	gui->bgcol = colour;
 }
 
-COLOUR GUI_GetBackgroundColor(GUI gui) {
-	return gui->bgColour;
+Colour get_bgcol(GUI gui) {
+	return gui->bgcol;
 }
 
-SDL_Renderer *GUI_GetRenderer(GUI gui) {
+SDL_Renderer *get_renderer(GUI gui) {
 	return gui->renderer;
 }
+
+uint16_t screen_wd(GUI gui) { return gui->screen_wd; }
+uint16_t screen_ht(GUI gui) { return gui->screen_ht; }
+
+
+
 
