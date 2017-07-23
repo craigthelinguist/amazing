@@ -25,7 +25,7 @@ Event_Q make_eventq(void) {
 	eq->tail = 0;
 	eq->size = 0;
 	
-	// Zero out all of the memory.
+	// Zero out all of the structs in the array.
 	for (int i = 0; i < QUEUE_SIZE; i++) {
 		eq->buffer[i] = (const Event){0};
 	}

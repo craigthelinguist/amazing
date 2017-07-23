@@ -1,5 +1,7 @@
 
+#include "event_q.h"
 #include "game.h"
+#include "graph.h"
 #include <stdio.h>
 
 // Some default colours.
@@ -18,7 +20,88 @@ const int64_t WALL_WIDTH  = 2;
 const int64_t OFFSET_X    = 10;
 const int64_t OFFSET_Y    = 10;
 
+
+
 void draw_tile_walls(GUI gui, GRAPH graph, int64_t x, int64_t y);
+
+
+
+
+
+
+
+
+
+
+struct Game {
+	GUI gui;
+	Event_Q event_queue;
+	GRAPH game_world;
+	char is_initialised;
+};
+
+
+
+
+
+/**
+	Allocate memory for a new game. You must pass in the GUI which it should
+	draw to, and then call init_game with the kind of maze you want it to
+	generate.
+**/
+Game make_game(GUI gui) {	
+	struct Game *game = malloc(sizeof(struct Game));
+	Event_Q event_queue = make_eventq();
+	game->gui = gui;
+	game->event_queue = event_queue;
+	game->game_world = NULL;
+	game->is_initialised = 0;
+	return game;
+}
+
+/**
+	Frees the memory used by this game. The GUI that this game uses will not
+	be freed; the caller must manually free that.
+**/
+void free_game(Game game) {
+	if (game->is_initialised) {
+		GRAPH_Free(game->game_world);
+	}
+	game->game_world = NULL;
+	game->is_initialised = 0;
+	free_eventq(game->event_queue);
+	game->event_queue = NULL;
+	game->gui = NULL;
+}
+
+/**
+	Initialise the game world using the parameters given. Memory will be
+	allocated for the game world. The memory for the game world is freed
+	when the memory for the game is freed.
+**/
+void init_game(Game game, int16_t maze_size, Algorithm generation_algorithm) {
+	game->game_world = GRAPH_Make(maze_size, generation_algorithm);
+	game->is_initialised = 1;
+}
+
+void run_game(Game game) {
+
+	if (!game->is_initialised) {
+		fprintf(stderr, "Cannot run the game; it has not been initialised properly.");
+		return;
+	}
+	
+	/* Main game loop goes here. */
+	clear_screen(game->gui);
+	draw_graph(game->game_world, game->gui);
+	refresh_screen(game->gui);
+	SDL_Delay(5000);
+	
+}
+
+
+
+
 
 void draw_graph(GRAPH graph, GUI gui) {
 	fprintf(stdout, "Drawing the graph, which has width %d\n", GRAPH_width(graph));
@@ -43,7 +126,7 @@ void draw_graph(GRAPH graph, GUI gui) {
 	for (int x = 0; x < WIDTH; x++) {
 		for (int y = 0; y < WIDTH; y++) {
 			draw_tile_walls(gui, graph, x, y);
-	}
+		}
 	}
 	
 }

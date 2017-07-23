@@ -49,7 +49,7 @@ enum Direction opposite_direction(enum Direction dir) {
 
 void generate_maze(struct Graph *g);
 
-struct Graph *GRAPH_Make(int16_t width) {
+struct Graph *GRAPH_Make(int16_t width, Algorithm generation_algorithm) {
 	struct Graph *g = malloc(sizeof(struct Graph) + sizeof(int16_t) * width * width);
 	g->width = width;
 	
@@ -58,8 +58,22 @@ struct Graph *GRAPH_Make(int16_t width) {
 		g->nmap[i] = 0;
 	}
 	
-	generate_maze(g);
+	switch(generation_algorithm) {
+		case DFS_WITH_BACKTRACKING:
+			generate_maze(g);
+			break;
+			
+		default:
+			free(g);
+			g = NULL;
+			break;
+	}
+	
 	return g;
+}
+
+void GRAPH_Free(struct Graph *graph) {
+	free(graph);
 }
 
 POINT point_after_moving(POINT p, enum Direction dir) {

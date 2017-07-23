@@ -5,11 +5,19 @@
 #include "drawing.h"
 #include "graph.h"
 #include "gui.h"
+#include "maze_algos.h"
 #include <stdint.h>
 
-void draw_graph(GRAPH graph, GUI gui);
+typedef struct Game *Game;
 
-// This is only publically available for debugging purposes. Delete in final version.
-void draw_tile(GUI gui, TILE tile, int64_t xpos, int64_t ypos);
+Game make_game(GUI gui);
+
+void free_game(Game game);
+
+void init_game(Game game, int16_t maze_size, Algorithm generation_algorithm);
+
+void run_game(Game game);
+
+void draw_graph(GRAPH graph, GUI gui);
 
 #endif

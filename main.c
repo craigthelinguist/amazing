@@ -31,16 +31,10 @@ int main(int argc, char* argv[]) {
 	GUI gui = make_gui(800, 600);
 	set_bgcol(gui, (Colour) { 120, 120, 120, 255 });
 	
-	GRAPH graph = GRAPH_Make(GRAPH_SIZE);
+	Game game = make_game(gui);
+	init_game(game, GRAPH_SIZE, DFS_WITH_BACKTRACKING);
+	run_game(game);
 	
-	clear_screen(gui);
-	
-	draw_graph(graph, gui);
-	
-	refresh_screen(gui);
-	
-	
-	SDL_Delay(5000);
 	return 0;
 }
 
