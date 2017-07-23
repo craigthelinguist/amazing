@@ -8,9 +8,9 @@
 #include <time.h>
 
 struct Event_Q {
-	int16_t head;
-	int16_t tail;
-	int16_t size;
+	int8_t head;
+	int8_t tail;
+	int8_t size;
 	Event buffer[QUEUE_SIZE];
 };
 

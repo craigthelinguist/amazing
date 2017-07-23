@@ -13,7 +13,7 @@
 	#include "event.h"
 
 	// Maximum number of events that can be stored.
-	#define QUEUE_SIZE 2
+	#define QUEUE_SIZE 50
 	
 	typedef struct Event_Q *Event_Q;
 	
