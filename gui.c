@@ -1,5 +1,4 @@
 
-#include "camera.h"
 #include "colours.h"
 #include "gui.h"
 #include "point.h"
@@ -33,6 +32,9 @@ GUI make_gui(const uint16_t WIDTH, const uint16_t HEIGHT) {
 	
 	return gui;
 }
+
+
+Camera get_cam(GUI gui) { return gui->camera; }
 
 int32_t xcam(GUI gui) { return gui->camera->centre_x; }
 

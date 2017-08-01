@@ -3,7 +3,6 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "gui.h"
 #include <stdint.h>
 
 struct Camera {

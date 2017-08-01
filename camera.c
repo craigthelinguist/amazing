@@ -1,7 +1,6 @@
 
 #include "camera.h"
 
-#include "gui.h"
 #include <stdlib.h>
 
 Camera make_camera(int32_t x, int32_t y) {

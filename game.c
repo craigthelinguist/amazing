@@ -1,4 +1,5 @@
 
+#include "camera.h"
 #include "event_q.h"
 #include "game.h"
 #include "graph.h"
@@ -37,7 +38,10 @@ struct Game {
 	GUI gui;
 	Event_Q event_queue;
 	GRAPH game_world;
+	// Whether the game-state has been properly initialised.
 	char is_initialised;
+	// Whether the game has finished executing.
+	char done;
 };
 
 
@@ -56,6 +60,7 @@ Game make_game(GUI gui) {
 	game->event_queue = event_queue;
 	game->game_world = NULL;
 	game->is_initialised = 0;
+	game->done = 0;
 	return game;
 }
 
@@ -84,6 +89,39 @@ void init_game(Game game, int16_t maze_size, Algorithm generation_algorithm) {
 	game->is_initialised = 1;
 }
 
+void render(Game game) {
+	clear_screen(game->gui);
+	draw_graph(game->game_world, game->gui);
+	refresh_screen(game->gui);
+}
+
+void handle_input(Game game, SDL_Event e) {
+	
+	if (e.type == SDL_QUIT) {
+		game->done = 1;
+		return;
+	}
+	
+	if (e.type == SDL_KEYUP && !e.key.repeat) {
+		switch(e.key.keysym.sym) {
+		}
+	}
+	
+	if (e.type == SDL_KEYDOWN && !e.key.repeat) {
+		Camera cam = get_cam(game->gui);
+		int32_t pan_x = 0;
+		int32_t pan_y = 0;
+		switch(e.key.keysym.sym) {
+			case SDLK_UP: pan_y = -1; break;
+			case SDLK_DOWN: pan_y = 1; break;
+			case SDLK_LEFT: pan_x = -1; break;
+			case SDLK_RIGHT: pan_x = -1; break;
+		}
+		pan_camera(cam, pan_x, pan_y);
+	}
+	
+}
+
 void run_game(Game game) {
 
 	if (!game->is_initialised) {
@@ -91,11 +129,26 @@ void run_game(Game game) {
 		return;
 	}
 	
+	SDL_Event e;
+	
+	while(!game->done) {
+		
+		while(SDL_PollEvent(&e)) {
+			if (e.type==SDL_QUIT) {
+				game->done = 1;
+			}
+			else {
+				handle_input(game, e);
+			}
+		}
+		
+		render(game);
+		
+		
+	}
+	
 	/* Main game loop goes here. */
-	clear_screen(game->gui);
-	draw_graph(game->game_world, game->gui);
-	refresh_screen(game->gui);
-	SDL_Delay(5000);
+	// SDL_Delay(5000);
 	
 }
 
@@ -104,17 +157,22 @@ void run_game(Game game) {
 
 
 void draw_graph(GRAPH graph, GUI gui) {
-	fprintf(stdout, "Drawing the graph, which has width %d\n", GRAPH_width(graph));
+	
+	/* Debug info */
+	//fprintf(stdout, "Drawing the graph, which has width %d\n", GRAPH_width(graph));
 	
 	// Draw the background.
 	const int8_t WIDTH = GRAPH_width(graph);
 	set_drawcol2(gui, COLOUR_FLOOR);
 	fill_rect(gui, OFFSET_X, OFFSET_Y, WIDTH * TILE_WIDTH, WIDTH * TILE_HEIGHT);
 	
-	// Draw the start and end tiles.
+	/* Debug info 
 	POINT start = GRAPH_StartPos(graph);
 	POINT exit = GRAPH_ExitPos(graph);
 	fprintf(stdout, "Start: (%d, %d) and End: (%d, %d)\n", start.x, start.y, exit.x, exit.y);
+	*/
+	
+	// Draw the start and end tiles.
 	set_drawcol2(gui, COLOUR_FLOOR_SPECIAL);
 	POINT start_tile = GRAPH_StartPos(graph);
 	POINT exit_tile  = GRAPH_ExitPos(graph);

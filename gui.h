@@ -3,6 +3,7 @@
 #ifndef GUI_H
 #define GUI_H
 
+#include "camera.h"
 #include "colours.h"
 #include "point.h"
 #include <SDL2/SDL.h>
@@ -18,6 +19,8 @@ void set_bgcol(GUI gui, Colour colour);
 Colour get_bgcol(GUI gui);
 
 SDL_Renderer *get_renderer(GUI gui);
+
+Camera get_cam(GUI gui);
 
 const SDL_PixelFormat *get_screen_format(GUI gui);
 
