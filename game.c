@@ -1,9 +1,14 @@
 
+
+
+#include <pthread.h>
+#include <stdio.h>
+#include <time.h>
+
 #include "camera.h"
 #include "event_q.h"
 #include "game.h"
 #include "graph.h"
-#include <stdio.h>
 
 // Some default colours.
 Colour COLOUR_FLOOR         = { 200, 200, 200, 255 };
@@ -35,11 +40,18 @@ void draw_tile_walls(GUI gui, GRAPH graph, int64_t x, int64_t y);
 
 
 struct Game {
+	
 	GUI gui;
-	Event_Q event_queue;
 	GRAPH game_world;
+	
+	// Where game events are stored for processing, and the mutex
+	// for threadsafe access.
+	Event_Q event_queue;
+	pthread_mutex_t event_queue_mutex;
+	
 	// Whether the game-state has been properly initialised.
 	char is_initialised;
+	
 	// Whether the game has finished executing.
 	char done;
 };
@@ -89,10 +101,27 @@ void init_game(Game game, int16_t maze_size, Algorithm generation_algorithm) {
 	game->is_initialised = 1;
 }
 
+/**
+	Create a new event and push it into the queue. This will attempt to
+	acquire the lock on the queue.
+**/
+void register_event(Game game, Event_Type event_type) {
+	pthread_mutex_lock(&game->event_queue_mutex);
+	push_event(game->event_queue, event_type);
+	pthread_mutex_unlock(&game->event_queue_mutex);
+}
+
+/**
+	Draw the game world.
+**/
 void render(Game game) {
 	clear_screen(game->gui);
 	draw_graph(game->game_world, game->gui);
 	refresh_screen(game->gui);
+}
+
+void update(Game game) {
+	
 }
 
 void handle_input(Game game, SDL_Event e) {
@@ -107,15 +136,18 @@ void handle_input(Game game, SDL_Event e) {
 		}
 	}
 	
+	/* Eventually factor this out; these should be 
+		translated into game events? */
 	if (e.type == SDL_KEYDOWN && !e.key.repeat) {
 		Camera cam = get_cam(game->gui);
 		int32_t pan_x = 0;
 		int32_t pan_y = 0;
+		const int8_t MAG = 3;
 		switch(e.key.keysym.sym) {
-			case SDLK_UP: pan_y = -1; break;
-			case SDLK_DOWN: pan_y = 1; break;
-			case SDLK_LEFT: pan_x = -1; break;
-			case SDLK_RIGHT: pan_x = -1; break;
+			case SDLK_UP: pan_y = -MAG; break;
+			case SDLK_DOWN: pan_y = MAG; break;
+			case SDLK_LEFT: pan_x = -MAG; break;
+			case SDLK_RIGHT: pan_x = MAG; break;
 		}
 		pan_camera(cam, pan_x, pan_y);
 	}
@@ -130,9 +162,19 @@ void run_game(Game game) {
 	}
 	
 	SDL_Event e;
+	const time_t MS_PER_UPDATE = 400;
+	time_t last_update = 0;
+	time_t lag = 0;
 	
 	while(!game->done) {
 		
+		/* Scale game events to elapsed time. */
+		time_t now = time(&now);
+		time_t elapsed = now - last_update;
+		last_update = now;
+		
+		
+		/* Process input. */
 		while(SDL_PollEvent(&e)) {
 			if (e.type==SDL_QUIT) {
 				game->done = 1;
@@ -142,8 +184,14 @@ void run_game(Game game) {
 			}
 		}
 		
-		render(game);
+		/* Update the game state. */
+		while (lag >= MS_PER_UPDATE) {
+			update(game);
+			lag -= MS_PER_UPDATE;
+		}
 		
+		/* Render the game. */
+		render(game);
 		
 	}
 	
