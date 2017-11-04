@@ -2,8 +2,11 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#include "maze_algos.h"
 #include <stdint.h>
+
+enum MazeAlgo { DFS_WITH_BACKTRACKING };
+
+typedef enum MazeAlgo MazeAlgo;
 
 typedef struct Graph *GRAPH;
 typedef int16_t TILE;
@@ -25,7 +28,7 @@ POINT point_after_moving(POINT p, DIRECTION dir);
 TILE   GRAPH_width(GRAPH g);
 TILE   GRAPH_tileAt(GRAPH g, int16_t xpos, int16_t ypos);
 int16_t GRAPH_isEntryOrExit(GRAPH g, int16_t xpos, int16_t ypos);
-GRAPH  GRAPH_Make(int16_t width, Algorithm generation_algorithm);
+GRAPH  GRAPH_Make(int16_t width, MazeAlgo generation_algorithm);
 void GRAPH_Free(struct Graph *graph);
 POINT  GRAPH_StartPos(GRAPH g);
 POINT  GRAPH_ExitPos(GRAPH g);

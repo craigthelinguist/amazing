@@ -1,14 +1,16 @@
 
-#include "game.h"
-#include "graph.h"
-#include "gui.h"
-#include "drawing.h"
 
 #include <SDL2/SDL.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "drawing.h"
+#include "game_loop.h"
+#include "game_state.h"
+#include "graph.h"
+#include "gui.h"
 
 void draw(GUI gui, int8_t tile, int8_t xpos, int8_t ypos);
 
@@ -29,12 +31,11 @@ int main(int argc, char* argv[]) {
 	}
 	
 	SDL_Init(SDL_INIT_VIDEO);
-	GUI gui = make_gui(800, 600);
+    GUI gui = make_gui(800, 600);
 	set_bgcol(gui, (Colour) { 120, 120, 120, 255 });
-	
-	Game game = make_game(gui);
-	init_game(game, GRAPH_SIZE, DFS_WITH_BACKTRACKING);
-	run_game(game);
+	GameState game_state = make_game_state();
+    init_maze(game_state, GRAPH_SIZE, DFS_WITH_BACKTRACKING);
+    run_game_loop(gui, game_state);
 	
 	return 0;
 }
