@@ -3,10 +3,11 @@
 #ifndef GUI_H
 #define GUI_H
 
-#include "camera.h"
+#include <SDL2/SDL.h>
+
+#include "camera0.h"
 #include "colours.h"
 #include "point.h"
-#include <SDL2/SDL.h>
 
 typedef struct Gui *GUI;
 
@@ -20,10 +21,8 @@ Colour get_bgcol(GUI gui);
 
 SDL_Renderer *get_renderer(GUI gui);
 
-Camera get_cam(GUI gui);
-
 const SDL_PixelFormat *get_screen_format(GUI gui);
 
-Point_Int32 offset_point(GUI gui, uint32_t x, uint32_t y);
-	
+Point_Int32 offset_point(GUI gui, Camera camera, uint32_t x, uint32_t y);
+
 #endif

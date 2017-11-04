@@ -1,11 +1,11 @@
 
-#include "camera.h"
-
 #include <stdlib.h>
+
+#include "camera0.h"
 
 Camera make_camera(int32_t x, int32_t y) {
 	struct Camera *cam = malloc(sizeof(struct Camera));
-	cam->centre_x = x;		// Starting position is the middle of the screen.
+	cam->centre_x = x;
 	cam->centre_y = y; 
 	return cam;
 }

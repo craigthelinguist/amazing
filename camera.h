@@ -5,11 +5,6 @@
 
 #include <stdint.h>
 
-struct Camera {
-	int32_t centre_x;
-	int32_t centre_y;
-};
-
 typedef struct Camera *Camera;
 
 Camera make_camera(int32_t x, int32_t y);

@@ -1,6 +1,8 @@
 
 #include "keymap.h"
 
+// TODO: we can't do the simple thing and index by SDL_Keycode because the values are weird (they're not all
+// TODO: after another). Might have to do a manual shift to get them to fit into a short array.
 bool KEY_PRESS_MAP[KEY_MAP_SIZE];
 bool KEY_RELEASE_MAP[KEY_MAP_SIZE];
 
@@ -11,10 +13,3 @@ void clear_key_event_maps(void) {
     }
 }
 
-bool was_key_pressed(SDL_Keycode key) {
-  return KEY_PRESS_MAP[key];
-}
-
-bool was_key_released(SDL_Keycode key) {
-  return KEY_RELEASE_MAP[key];
-}

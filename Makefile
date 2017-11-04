@@ -11,3 +11,6 @@ SRC_MAIN=main.c graph.c colours.c camera.c gui.c drawing.c game_state.c render.c
 # Compilation rules.
 amazing.exe:
 	$(CC) $(SRC_MAIN) $(STD) $(WARNINGS) $(FLAGS) $(LINKING) $^ -o $@
+
+clean:
+	rm amazing.exe

@@ -3,12 +3,13 @@
 #ifndef GAME_STATE0_H
 #define GAME_STATE0_H
 
+#include "camera.h"
+#include "game_state.h"
 #include "graph.h"
 
-#include "game_state.h"
-
 struct GameState {
-  GRAPH graph;
+    Camera camera;
+    GRAPH graph;
 };
 
 #endif

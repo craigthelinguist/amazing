@@ -4,14 +4,12 @@
 #include "point.h"
 #include <stdlib.h>
 
-
 struct Gui {
 	SDL_Window *window;
 	SDL_Renderer *renderer;
 	uint16_t screen_wd;
 	uint16_t screen_ht;
 	Colour bgcol;
-	Camera camera;
 };
 
 GUI make_gui(const uint16_t WIDTH, const uint16_t HEIGHT) {	
@@ -26,29 +24,18 @@ GUI make_gui(const uint16_t WIDTH, const uint16_t HEIGHT) {
 	
 	// Default background colour is white.
 	gui->bgcol = make_colour(255, 255, 255, 255);
-	
-	// TODO: default camera position should be (gui->screen_wd, gui->screen_ht)
-	gui->camera = make_camera(0, 0);
-	
+
 	return gui;
 }
 
 
-Camera get_cam(GUI gui) { return gui->camera; }
 
-int32_t xcam(GUI gui) { return gui->camera->centre_x; }
-
-int32_t ycam(GUI gui) { return gui->camera->centre_y; }
-
-
-
-
-Point_Int32 offset_point(GUI gui, uint32_t x, uint32_t y) {
+Point_Int32 offset_point(GUI gui, Camera camera, uint32_t x, uint32_t y) {
 	
 	// Figure out the (x,y) of the top-left of the camera.
 	Point_Int32 camera_topleft = (Point_Int32) {
-		gui->camera->centre_x - gui->screen_wd/2,
-		gui->camera->centre_y - gui->screen_ht/2
+		camera->centre_x - gui->screen_wd/2,
+		camera->centre_y - gui->screen_ht/2
 	};
 	
 	// Offset (x,y) by the camera, so it is relative to (0,0).
@@ -71,8 +58,6 @@ void free_gui(GUI gui) {
 	gui->window = NULL;
 	SDL_DestroyRenderer(gui->renderer);
 	gui->renderer = NULL;
-	free_camera(gui->camera);
-	gui->camera = NULL;
 	free(gui);
 	gui = NULL;
 }

@@ -1,14 +1,17 @@
 
 
+
+#include <stdio.h>
+
+#include <SDL_image.h>
+
 #include "colours.h"
 #include "drawing.h"
 #include "gui.h"
 #include "point.h"
-#include <SDL_image.h>
-#include <stdio.h>
 
-void draw_image(GUI gui, struct Image *image, int x, int y) {
-	Point_Int32 pt = offset_point(gui, x, y);
+void draw_image(GUI gui, Camera camera, struct Image *image, int x, int y) {
+	Point_Int32 pt = offset_point(gui, camera, x, y);
 	SDL_Rect rect = {pt.x, pt.y, image->wd, image->ht};
 	SDL_RenderCopy(get_renderer(gui), image->texture, NULL, &rect);
 	
@@ -20,8 +23,8 @@ void draw_image(GUI gui, struct Image *image, int x, int y) {
 	*/
 }
 
-void draw_rect(GUI gui, const int64_t x, const int64_t y, const int64_t wd, const int64_t ht) {
-	Point_Int32 pt = offset_point(gui, x, y);
+void draw_rect(GUI gui, Camera camera, const int64_t x, const int64_t y, const int64_t wd, const int64_t ht) {
+	Point_Int32 pt = offset_point(gui, camera, x, y);
 	SDL_Rect rect = {pt.x, pt.y, wd, ht};
 	SDL_RenderDrawRect(get_renderer(gui), &rect);
 	/*
@@ -29,8 +32,8 @@ void draw_rect(GUI gui, const int64_t x, const int64_t y, const int64_t wd, cons
 	SDL_RenderDrawRect(get_renderer(gui), &rect);*/
 }
 
-void fill_rect(GUI gui, const int64_t x, const int64_t y, const int64_t wd, const int64_t ht) {
-	Point_Int32 pt = offset_point(gui, x, y);
+void fill_rect(GUI gui, Camera camera, const int64_t x, const int64_t y, const int64_t wd, const int64_t ht) {
+	Point_Int32 pt = offset_point(gui, camera, x, y);
 	SDL_Rect rect = {pt.x, pt.y, wd, ht};
 	SDL_RenderFillRect(get_renderer(gui), &rect);
 	/*
