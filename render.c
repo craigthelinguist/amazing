@@ -13,11 +13,11 @@ Colour COLOUR_FLOOR_SPECIAL = { 240, 200, 200, 255 };
 Colour COLOUR_BACKGROUND    = { 0,   0,   0,   255 };
 
 // Drawing parameters for tiles in the maze.
-const int64_t TILE_WIDTH  = 32;
-const int64_t TILE_HEIGHT = 32;
+const int64_t TILE_WIDTH  = 64;
+const int64_t TILE_HEIGHT = 64;
 
 // For the walls to look good, their width should be an even number.
-const int64_t WALL_WIDTH  = 2;
+const int64_t WALL_WIDTH  = 1;
 
 const int64_t OFFSET_X    = 10;
 const int64_t OFFSET_Y    = 10;

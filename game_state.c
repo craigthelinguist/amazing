@@ -41,7 +41,7 @@ void free_game_state(GameState game_state) {
 
 /// Initialise the maze for the `game_state`. Memory will be allocated for the maze; it is freed when `game_state` is
 /// freed.
-void init_maze(GameState game_state, int16_t maze_size, MazeAlgo maze_algo) {
+void init_game(GameState game_state, int16_t maze_size, MazeAlgo maze_algo) {
     game_state->graph = GRAPH_Make(maze_size, maze_algo);
     game_state->camera = make_camera(0, 0);
     // TODO: centre camera on starting point.

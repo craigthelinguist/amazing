@@ -1,11 +1,16 @@
 
-#include "gui.h"
-#include "imagelib.h"
-#include <SDL_image.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
+#include <SDL_image.h>
+
+#include "imagelib.h"
+
+/// Maximum length of an asset name.
 #define STRING_SIZE 32
 
 struct Entry {
@@ -16,140 +21,144 @@ struct Entry {
 struct ImageLib {
 	int capacity;
 	int size;
-	struct Entry *data;
+	char *base_path;
+	struct Entry *entries;
 };
 
+/// The actual image library at runtime.
 static struct ImageLib lib;
+
+/// The error code for when library calls go wrong.
+ImageLibErr IMAGE_LIB_ERR;
 
 char streq(const char *s1, const char *s2) {
 	return !strcmp(s1, s2);
 }
 
-void imagelib_init(const int maxSize) {
-	lib.data = calloc(sizeof(struct Entry), maxSize);
+/// Return the character which separates the names in a filepath. E.g. '/' or '\'
+/// This is platform-specific.
+char fpath_separator() {
+	#ifdef __unix__
+    	return '/';
+	#elif defined(_WIN32) || defined(WIN32)
+    	return '\\';
+	#else
+    	fprintf(stderr, "Unknown platform");
+		exit(100);
+	#endif
+}
+
+bool directory_exists(char *dirpath) {
+	struct stat info;
+	if (stat(dirpath, &info) != 0) {
+		return false;
+	} else if (info.st_mode & S_IFDIR) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool file_exists(char *fpath) {
+	struct stat info;
+	if (stat(fpath, &info) != 0) {
+		return false;
+	} else if (info.st_mode & S_IFREG) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool imagelib_init(char *asset_directory, const int maxSize) {
+	if (!directory_exists(asset_directory)) {
+		IMAGE_LIB_ERR = DIRECTORY_NOT_FOUND;
+		return false;
+	}
+	lib.entries = calloc(sizeof(struct Entry), maxSize);
 	lib.capacity = maxSize;
 	lib.size = 0;
+	if (asset_directory != NULL) {
+		int asset_dir_len = strlen(asset_directory);
+		lib.base_path = malloc(asset_dir_len + 2); // +1 for null terminator, +1 for separator
+		strcat(lib.base_path, asset_directory);
+		lib.base_path[asset_dir_len] = fpath_separator();
+		lib.base_path[asset_dir_len + 1] = '\0';
+	}
+	return OK;
 }
 
 void imagelib_free() {
-	for (int i = 0; i < lib.capacity || lib.data + i != NULL; i++) {
-		SDL_DestroyTexture(lib.data[i].image.texture);
+	for (int i = 0; i < lib.capacity || lib.entries + i != NULL; i++) {
+		SDL_DestroyTexture(lib.entries[i].image.texture);
 	}
-	free(lib.data);
+	free(lib.base_path);
+	free(lib.entries);
 }
 
-char imagelib_load(char *fname, SDL_Renderer *renderer) {
-	
-	// Fail if name of file is too long.
-	if (strlen(fname) > STRING_SIZE - 1) return 0;
-	
-	// Fail if library is at full capacity.
-	if (lib.size == lib.capacity) return 0;
-	
-	// Load the image in fname as an SDL_Surface.
-	SDL_Surface *surface = IMG_Load(fname);
-	if (surface == NULL) return 0;
+bool imagelib_load(char *fname, SDL_Renderer *renderer) {
 
-	// Create a texture from the image.
+	if (!directory_exists(lib.base_path)) {
+		IMAGE_LIB_ERR = DIRECTORY_NOT_FOUND;
+		return false;
+	}
+
+	if (lib.size == lib.capacity) {
+		IMAGE_LIB_ERR = LIBRARY_FULL;
+		return false;
+	}
+
+	int file_name_len = strlen(fname);
+	if (file_name_len > STRING_SIZE - 1) {
+		IMAGE_LIB_ERR = FILE_NAME_TOO_LONG;
+		return false;
+	}
+
+	// Resolve the file name.
+	int base_path_len = strlen(lib.base_path);
+	char fpath[base_path_len + file_name_len + 1];
+	strcat(fpath, lib.base_path);
+	strcat(fpath + base_path_len, fname);
+	fpath[base_path_len + file_name_len] = '\0';
+
+	if (!file_exists(fpath)) {
+		IMAGE_LIB_ERR = FILE_NOT_FOUND;
+		return false;
+	}
+
+	SDL_Surface *surface = IMG_Load(fpath);
+	if (surface == NULL) {
+		IMAGE_LIB_ERR = SDL_ERROR;
+		return false;
+	}
+
 	SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);	
 	if (!texture) {
+		IMAGE_LIB_ERR = SDL_ERROR;
 		free(surface);
-		return 0;
+		return false;
 	}
 	
-	// Store the texture and image data.
-	lib.data[lib.size].image.wd = surface->w;
-	lib.data[lib.size].image.ht = surface->h;
-	lib.data[lib.size].image.texture = texture;
+	// Store the texture and image entries.
+	lib.entries[lib.size].image.wd = surface->w;
+	lib.entries[lib.size].image.ht = surface->h;
+	lib.entries[lib.size].image.texture = texture;
 
 	// Remember the filepath associated with this texture.
-	strcpy(lib.data[lib.size].fname, fname);
+	strcpy(lib.entries[lib.size].fname, fname);
 
 	// Clean up, increment size.
 	lib.size++;
 	SDL_FreeSurface(surface);
-	return 1;
+	return true;
 	
 }
 
 struct Image *imagelib_get(char *fname) {
 	for (int i = 0; i < lib.size; i++) {
-		if (!strcmp(fname, lib.data[i].fname))
-			return &(lib.data[i].image);
+		if (!strcmp(fname, lib.entries[i].fname))
+			return &(lib.entries[i].image);
 	}
+	IMAGE_LIB_ERR = NO_SUCH_IMAGE;
 	return NULL;
 }
-
-
-int main(int argc, char *argv[]) {
-
-	// Initialise SDL and the GUI.
-	SDL_Init(SDL_INIT_VIDEO);
-	GUI gui = GUI_Make(800, 400);
-
-	// Initialise imagelib.
-	imagelib_init(3);
-	
-	SDL_Renderer *r = GUI_GetRenderer(gui);
-	imagelib_load("assets/maria.png", r);
-	imagelib_load("assets/relm.png", r);
-	imagelib_load("assets/leo.png", r);
-	
-	GUI_ClearScreen(gui);
-	GUI_DrawImageToScreen(gui, imagelib_get("assets/maria.png"), 0, 0);
-	GUI_DrawRect(gui, 10, 10, 20, 20);
-	GUI_RefreshScreen(gui);
-	SDL_Delay(2000);
-	
-	GUI_ClearScreen(gui);
-	GUI_DrawImageToScreen(gui, imagelib_get("assets/relm.png"), 0, 0);        
-	GUI_FillRect(gui, 50, 50, 20, 20);
-	GUI_RefreshScreen(gui);
-	
-	SDL_Delay(2000);
-	
-	GUI_ClearScreen(gui);
-	GUI_DrawImageToScreen(gui, imagelib_get("assets/leo.png"), 0, 0);     
-	GUI_FillRect(gui, 50, 50, 20, 20);
-	GUI_RefreshScreen(gui);
-				/*
-				
-	
-	imagelib_load("assets/maria.png", gui);
-
-	// Draw the image.
-	SDL_Surface *img = imagelib_get("assets/maria.png");
-	if (img == NULL)
-		printf("wtf happened\n");
-	
-	GUI_ClearScreen(gui);
-	GUI_DrawImageToScreen(gui, imagelib_get("assets/maria.png"));
-
-	GUI_DrawRect(gui, 50, 50, 20, 20);
-	GUI_RefreshScreen(gui);
-	
-
-	
-	SDL_Delay(2000);
-	
-	GUI_ClearScreen(gui);
-	GUI_DrawImageToScreen(gui, imagelib_get("assets/relm.png"));        
-	GUI_FillRect(gui, 50, 50, 20, 20);
-	GUI_RefreshScreen(gui);
-	
-	SDL_Delay(2000);
-	
-	GUI_ClearScreen(gui);
-	GUI_DrawImageToScreen(gui, imagelib_get("assets/leo.png"));     
-	GUI_FillRect(gui, 50, 50, 20, 20);
-	GUI_RefreshScreen(gui);
-	
-	SDL_Delay(2000);
-	*/
-	return 0;
-	
-}
-
-
-
-

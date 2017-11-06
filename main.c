@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     GUI gui = make_gui(800, 600);
 	set_bgcol(gui, (Colour) { 120, 120, 120, 255 });
 	GameState game_state = make_game_state();
-    init_maze(game_state, GRAPH_SIZE, DFS_WITH_BACKTRACKING);
+    init_game(game_state, GRAPH_SIZE, DFS_WITH_BACKTRACKING);
     run_game_loop(gui, game_state);
 	
 	return 0;
