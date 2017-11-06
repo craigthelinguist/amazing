@@ -20,21 +20,20 @@ long time_ms(void) {
     return ms_since_epoch;
 }
 
-void dump_key_states(KeyStateMap key_state) {
-
-    printf("\t STATE \t PRESSED \t RELEASED");
-    for (int key = 0; key < KEY_MAP_SIZE; key++) {
-        printf("Key %d: \t %d \t %d \t %d", key, key_state[key], KEY_PRESS_MAP[key], KEY_RELEASE_MAP[key]);
-    }
-
-}
-
 /// Updates the key maps based on the current state of the keyboard.
 void update_keymaps(KeyStateMap key_state) {
-    SDL_PumpEvents();
-    for (int key = 0; key < KEY_MAP_SIZE; key++) {
-        KEY_PRESS_MAP[key] ^= key_state[key];
-        KEY_RELEASE_MAP[key] ^= key_state[key];
+    /* SDL_PumpEvents(); // unnecessary? PollEvent calls this, apparently. */
+    for (SDL_Scancode key = 0; key < KEY_MAP_SIZE; key++) {
+        if (key_state[key] && !KEY_DOWN_MAP[key]) {
+            KEY_PRESS_MAP[key] = KEY_DOWN_MAP[key] = true;
+        } else if (key_state[key] && KEY_PRESS_MAP[key]) {
+            KEY_PRESS_MAP[key] = false;
+        } else if (!key_state[key] && KEY_DOWN_MAP[key]) {
+            KEY_DOWN_MAP[key] = false;
+            KEY_RELEASE_MAP[key] = true;
+        } else if (!key_state[key] && KEY_RELEASE_MAP[key]) {
+            KEY_RELEASE_MAP[key] = false;
+        }
     }
 }
 
@@ -42,7 +41,7 @@ void update_keymaps(KeyStateMap key_state) {
 void run_game_loop(GUI gui, GameState game_state) {
 
 	SDL_Event e;
-	const Milliseconds MS_PER_UPDATE = (long long) (1000.0 / 120.0); // 120 FPS
+	const Milliseconds MS_PER_UPDATE = (long long) (1000.0 / 60.0); // 50 FPS
 	Milliseconds last_update = time_ms();
 	Milliseconds lag = 0;
 	
@@ -65,6 +64,7 @@ void run_game_loop(GUI gui, GameState game_state) {
         // Update the game state.
         while (lag >= MS_PER_UPDATE) {
             KeyStateMap key_state = SDL_GetKeyboardState(NULL);
+            update_keymaps(key_state);
             update_game(game_state, key_state);
             lag -= MS_PER_UPDATE;
         }

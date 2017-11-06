@@ -16,10 +16,9 @@ typedef const Uint8 *KeyStateMap;
 /// These maps record whether a key was first pushed/release in this frame.
 extern bool KEY_PRESS_MAP[KEY_MAP_SIZE];
 extern bool KEY_RELEASE_MAP[KEY_MAP_SIZE];
+extern bool KEY_DOWN_MAP[KEY_MAP_SIZE];
 
 /// Zero out `KEY_PRESS_MAP` and `KEY_RELEASE_MAP`.
 void clear_key_event_maps(void);
-
-
 
 #endif
