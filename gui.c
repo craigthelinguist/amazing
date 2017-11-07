@@ -1,16 +1,8 @@
 
 #include "colours.h"
-#include "gui.h"
+#include "gui0.h"
 #include "point.h"
 #include <stdlib.h>
-
-struct Gui {
-	SDL_Window *window;
-	SDL_Renderer *renderer;
-	uint16_t screen_wd;
-	uint16_t screen_ht;
-	Colour bgcol;
-};
 
 GUI make_gui(const uint16_t WIDTH, const uint16_t HEIGHT) {	
 	SDL_Window *window = SDL_CreateWindow("Amazing", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_SHOWN);
@@ -27,8 +19,6 @@ GUI make_gui(const uint16_t WIDTH, const uint16_t HEIGHT) {
 
 	return gui;
 }
-
-
 
 Point_Int32 offset_point(GUI gui, Camera camera, uint32_t x, uint32_t y) {
 	

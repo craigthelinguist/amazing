@@ -81,11 +81,11 @@ bool imagelib_init(char *asset_directory, const int maxSize) {
 	if (asset_directory != NULL) {
 		int asset_dir_len = strlen(asset_directory);
 		lib.base_path = malloc(asset_dir_len + 2); // +1 for null terminator, +1 for separator
-		strcat(lib.base_path, asset_directory);
+		strcpy(lib.base_path, asset_directory);
 		lib.base_path[asset_dir_len] = fpath_separator();
 		lib.base_path[asset_dir_len + 1] = '\0';
 	}
-	return OK;
+	return true;
 }
 
 void imagelib_free() {
@@ -97,11 +97,6 @@ void imagelib_free() {
 }
 
 bool imagelib_load(char *fname, SDL_Renderer *renderer) {
-
-	if (!directory_exists(lib.base_path)) {
-		IMAGE_LIB_ERR = DIRECTORY_NOT_FOUND;
-		return false;
-	}
 
 	if (lib.size == lib.capacity) {
 		IMAGE_LIB_ERR = LIBRARY_FULL;
@@ -117,9 +112,8 @@ bool imagelib_load(char *fname, SDL_Renderer *renderer) {
 	// Resolve the file name.
 	int base_path_len = strlen(lib.base_path);
 	char fpath[base_path_len + file_name_len + 1];
-	strcat(fpath, lib.base_path);
-	strcat(fpath + base_path_len, fname);
-	fpath[base_path_len + file_name_len] = '\0';
+	strcpy(fpath, lib.base_path);
+	strcat(fpath, fname);
 
 	if (!file_exists(fpath)) {
 		IMAGE_LIB_ERR = FILE_NOT_FOUND;
