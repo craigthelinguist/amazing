@@ -35,20 +35,8 @@ int main(int argc, char* argv[]) {
         exit(30);
 	}
 
-	// Load the image.
-	if (!imagelib_load("celes.png", gui->renderer)) {
-        switch (IMAGE_LIB_ERR) {
-            case DIRECTORY_NOT_FOUND:   fprintf(stderr, "Could not find directory %s", ASSET_DIRECTORY); break;
-            case FILE_NOT_FOUND:        fprintf(stderr, "Could not find asset `celes.png`"); break;
-            case FILE_NAME_TOO_LONG:    fprintf(stderr, "`celes.png` is too long a file name."); break;
-            case LIBRARY_FULL:          fprintf(stderr, "The image library is full."); break;
-            default:                    fprintf(stderr, "Unknown error %d", IMAGE_LIB_ERR); break;
-        }
-        exit(20);
-	}
-
 	// Set up the game state.
-	GameState game_state = make_game_state();
+	GameState game_state = make_game_state(gui);
     init_game(game_state, GRAPH_SIZE, DFS_WITH_BACKTRACKING);
 
 	// Run the game.

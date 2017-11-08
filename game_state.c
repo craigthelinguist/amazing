@@ -3,7 +3,14 @@
 
 #include <SDL2/SDL.h>
 
+#include "drawing.h"
 #include "game_state0.h"
+#include "imagelib.h"
+
+// The index containing the player.
+#define PLAYER_ENTITY_INDEX 0
+
+static char *ASSET_DIRECTORY = "assets";
 
 void update_game(GameState game_state, KeyStateMap key_state) {
     int32_t dx = 0;
@@ -18,8 +25,6 @@ void update_game(GameState game_state, KeyStateMap key_state) {
         exit(10);
     }
 
-    // TODO: `key_state` needs SDL_Scancode, which is a physical key rather than a virtual key.
-    // TODO: does this mean we need to store our own virtual key_state?
     if (key_state[SDL_SCANCODE_LEFT]) dx -= 1;
     if (key_state[SDL_SCANCODE_RIGHT]) dx += 1;
     if (key_state[SDL_SCANCODE_UP]) dy -= 1;
@@ -28,8 +33,40 @@ void update_game(GameState game_state, KeyStateMap key_state) {
     pan_camera(game_state->camera, dx, dy);
 }
 
-GameState make_game_state() {
+void add_entity(GameState game_state, GUI gui, int32_t xpos, int32_t ypos, char *image_name) {
+
+    // Load the image.
+    if (!imagelib_load(image_name, gui->renderer)) {
+        switch (IMAGE_LIB_ERR) {
+            case DIRECTORY_NOT_FOUND:
+                fprintf(stderr, "Could not find directory %s", ASSET_DIRECTORY);
+                break;
+            case FILE_NOT_FOUND:
+                fprintf(stderr, "Could not find asset `celes.png`");
+                break;
+            case FILE_NAME_TOO_LONG:
+                fprintf(stderr, "`celes.png` is too long a file name.");
+                break;
+            case LIBRARY_FULL:
+                fprintf(stderr, "The image library is full.");
+                break;
+            default:
+                fprintf(stderr, "Unknown error %d", IMAGE_LIB_ERR);
+                break;
+        }
+        exit(20);
+    }
+
+    // Create the entity.
+    Image *image = imagelib_get(image_name);
+    Entity player_entity = (Entity) {xpos, ypos, image};
+    game_state->entities[game_state->num_entities++] = player_entity;
+
+}
+
+GameState make_game_state(GUI gui) {
     GameState game_state = calloc(1, sizeof(GameState));
+    // add_entity(game_state, gui, 0, 0, "celes.png");
     return game_state;
 }
 

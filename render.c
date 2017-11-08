@@ -25,11 +25,21 @@ const int64_t OFFSET_Y    = 10;
 // Forward declarations.
 void draw_tile_walls(GUI gui, GameState game_state, int64_t x, int64_t y);
 void draw_maze(GUI gui, GameState game_state);
+void draw_entities(GUI gui, GameState game_state);
 
 void render_game(GUI gui, GameState game_state) {
 	clear_screen(gui);
 	draw_maze(gui, game_state);
+	draw_entities(gui, game_state);
 	refresh_screen(gui);
+}
+
+void draw_entities(GUI gui, GameState game_state) {
+	Camera camera = game_state->camera;
+	for (int32_t index = 0; index <= game_state->num_entities; index++) {
+		Entity entity = game_state->entities[index];
+		draw_image(gui, camera, entity.image, entity.xpos, entity.ypos);
+	}
 }
 
 void draw_maze(GUI gui, GameState game_state) {

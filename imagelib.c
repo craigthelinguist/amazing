@@ -98,6 +98,11 @@ void imagelib_free() {
 
 bool imagelib_load(char *fname, SDL_Renderer *renderer) {
 
+    // Check if the image is already loaded.
+    if (imagelib_get(fname) != NULL) {
+		return true;
+	}
+
 	if (lib.size == lib.capacity) {
 		IMAGE_LIB_ERR = LIBRARY_FULL;
 		return false;

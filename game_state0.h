@@ -3,6 +3,8 @@
 #ifndef GAME_STATE0_H
 #define GAME_STATE0_H
 
+#include <stdint.h>
+
 #include "camera.h"
 #include "entity0.h"
 #include "game_state.h"
@@ -14,6 +16,7 @@
 struct GameState {
     Camera camera;
     GRAPH graph;
+    int32_t num_entities;
     Entity entities[MAX_ENTITIES];
 };
 

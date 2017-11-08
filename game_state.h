@@ -4,6 +4,7 @@
 #define GAME_STATE_H
 
 #include "graph.h"
+#include "gui0.h"
 #include "Keymap.h"
 
 typedef struct GameState *GameState;
@@ -14,7 +15,7 @@ typedef struct GameState *GameState;
 /// \param key_state: a snapshot of the keyboard in this frame.
 void update_game(GameState game_state, KeyStateMap key_state);
 
-GameState make_game_state(void);
+GameState make_game_state(GUI gui);
 
 void free_game_state(GameState game_state);
 
