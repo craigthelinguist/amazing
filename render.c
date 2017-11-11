@@ -5,6 +5,7 @@
 #include "drawing.h"
 #include "game_state.h"
 #include "render.h"
+#include "stdbool.h"
 
 // Some default colours.
 Colour COLOUR_FLOOR         = { 200, 200, 200, 255 };
@@ -12,15 +13,8 @@ Colour COLOUR_WALL          = { 0,   0,   0,   255 };
 Colour COLOUR_FLOOR_SPECIAL = { 240, 200, 200, 255 };
 Colour COLOUR_BACKGROUND    = { 0,   0,   0,   255 };
 
-// Drawing parameters for tiles in the maze.
-const int64_t TILE_WIDTH  = 64;
-const int64_t TILE_HEIGHT = 64;
-
 // For the walls to look good, their width should be an even number.
 const int64_t WALL_WIDTH  = 1;
-
-const int64_t OFFSET_X    = 10;
-const int64_t OFFSET_Y    = 10;
 
 // Forward declarations.
 void draw_tile_walls(GUI gui, GameState game_state, int64_t x, int64_t y);
@@ -34,12 +28,19 @@ void render_game(GUI gui, GameState game_state) {
 	refresh_screen(gui);
 }
 
+#define MIN(X,Y) (X < Y ? X : Y)
+#define MAX(X,Y) (X > Y ? X : Y)
+
 void draw_entities(GUI gui, GameState game_state) {
-	Camera camera = game_state->camera;
-	for (int32_t index = 0; index < game_state->num_entities; index++) {
-		Entity entity = game_state->entities[index];
-		draw_image(gui, camera, entity.image, entity.xpos, entity.ypos);
-	}
+    Camera camera = game_state->camera;
+    for (int32_t index = 0; index < game_state->num_entities; index++) {
+        Entity entity = game_state->entities[index];
+        int image_height = entity.image->ht;
+        int image_top_y = entity.ypos - MAX(image_height - COLLISION_SIZE, 0);
+        draw_image(gui, camera, entity.image, entity.xpos, image_top_y);
+        set_drawcol(gui, 0, 255, 0, 0);
+        draw_rect(gui, camera, entity.xpos, entity.ypos, COLLISION_SIZE, COLLISION_SIZE);
+    }
 }
 
 void draw_maze(GUI gui, GameState game_state) {
@@ -53,7 +54,7 @@ void draw_maze(GUI gui, GameState game_state) {
 	// Draw the background.
 	const int8_t WIDTH = GRAPH_width(graph);
 	set_drawcol2(gui, COLOUR_FLOOR);
-	fill_rect(gui, camera, OFFSET_X, OFFSET_Y, WIDTH * TILE_WIDTH, WIDTH * TILE_HEIGHT);
+	fill_rect(gui, camera, 0, 0, WIDTH * TILE_WIDTH, WIDTH * TILE_HEIGHT);
 	
 	/* Debug info 
 	POINT start = GRAPH_StartPos(graph);
@@ -66,18 +67,10 @@ void draw_maze(GUI gui, GameState game_state) {
 	POINT start_tile = GRAPH_StartPos(graph);
 	POINT exit_tile  = GRAPH_ExitPos(graph);
 	fill_rect(gui, camera,
-              OFFSET_X + TILE_WIDTH * start_tile.x, OFFSET_Y + TILE_HEIGHT * start_tile.y, TILE_WIDTH, TILE_HEIGHT);
+               + TILE_WIDTH * start_tile.x, TILE_HEIGHT * start_tile.y, TILE_WIDTH, TILE_HEIGHT);
 	fill_rect(gui, camera,
-              OFFSET_X + TILE_WIDTH * exit_tile.x,  OFFSET_Y + TILE_HEIGHT * exit_tile.y,  TILE_WIDTH, TILE_HEIGHT);
-	
-	// Draw the walls.
-	set_drawcol2(gui, COLOUR_WALL);
-	for (int x = 0; x < WIDTH; x++) {
-		for (int y = 0; y < WIDTH; y++) {
-			draw_tile_walls(gui, game_state, x, y);
-		}
-	}
-	
+               + TILE_WIDTH * exit_tile.x,  TILE_HEIGHT * exit_tile.y,  TILE_WIDTH, TILE_HEIGHT);
+
 }
 
 void draw_tile_walls(GUI gui, GameState game_state, int64_t x, int64_t y) {
@@ -91,35 +84,35 @@ void draw_tile_walls(GUI gui, GameState game_state, int64_t x, int64_t y) {
 	// Draw top wall.
 	if (!in_bounds(graph, point_after_moving(p, TOP)) || !is_connected(tile, TOP)) {
 		fill_rect(gui, camera,
-			OFFSET_X + x * TILE_WIDTH,
-			OFFSET_Y + y * TILE_HEIGHT - WALL_WIDTH/2,
+			x * TILE_WIDTH,
+			y * TILE_HEIGHT - WALL_WIDTH/2,
 			TILE_WIDTH,
 			WALL_WIDTH);
 	}
-	
+
 	// Draw bottom wall.
 	if (!in_bounds(graph, point_after_moving(p, DOWN)) || !is_connected(tile, DOWN)) {
 		fill_rect(gui, camera,
-			OFFSET_X + x * TILE_WIDTH,
-			OFFSET_Y + y * TILE_HEIGHT + TILE_HEIGHT - WALL_WIDTH/2,
+			x * TILE_WIDTH,
+			y * TILE_HEIGHT + TILE_HEIGHT - WALL_WIDTH/2,
 			TILE_WIDTH,
 			WALL_WIDTH);
 	}
-	
+
 	// Draw right wall.
 	if (!in_bounds(graph, point_after_moving(p, RIGHT)) || !is_connected(tile, RIGHT)) {
 		fill_rect(gui, camera,
-			OFFSET_X + x * TILE_WIDTH + TILE_WIDTH - WALL_WIDTH/2,
-			OFFSET_Y + y * TILE_HEIGHT,
+			x * TILE_WIDTH + TILE_WIDTH - WALL_WIDTH/2,
+			y * TILE_HEIGHT,
 			WALL_WIDTH,
 			TILE_HEIGHT);
 	}
-	
+
 	// Draw left wall.
 	if (!in_bounds(graph, point_after_moving(p, LEFT)) || !is_connected(tile, LEFT)) {
 		fill_rect(gui, camera,
-			OFFSET_X + x * TILE_WIDTH - WALL_WIDTH/2,
-			OFFSET_Y + y * TILE_HEIGHT,
+			x * TILE_WIDTH - WALL_WIDTH/2,
+			y * TILE_HEIGHT,
 			WALL_WIDTH,
 			TILE_HEIGHT);
 	}

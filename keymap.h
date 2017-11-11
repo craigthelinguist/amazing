@@ -18,6 +18,9 @@ extern bool KEY_PRESS_MAP[KEY_MAP_SIZE];
 extern bool KEY_RELEASE_MAP[KEY_MAP_SIZE];
 extern bool KEY_DOWN_MAP[KEY_MAP_SIZE];
 
+/// Records whether left, up, down, or right was the last direction pressed.
+extern SDL_Scancode LAST_DIRECTION_PRESSED;
+
 /// Zero out `KEY_PRESS_MAP` and `KEY_RELEASE_MAP`.
 void clear_key_event_maps(void);
 

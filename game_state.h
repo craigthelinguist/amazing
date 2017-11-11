@@ -19,7 +19,7 @@ GameState make_game_state(GUI gui);
 
 void free_game_state(GameState game_state);
 
-void init_game(GameState game_state, int16_t maze_size, MazeAlgo maze_algo);
+void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_algo);
 
 #endif
 

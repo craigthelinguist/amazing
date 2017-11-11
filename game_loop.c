@@ -37,6 +37,31 @@ void update_keymaps(KeyStateMap key_state) {
     }
 }
 
+/// Check if the given `SDL_Scancode` is an arrow key.
+bool is_directional_key(SDL_Scancode key) {
+    return key == SDL_SCANCODE_DOWN
+            || SDL_SCANCODE_UP
+            || SDL_SCANCODE_LEFT
+            || SDL_SCANCODE_RIGHT;
+}
+
+/// Process an event in the game loop as it is polled.
+void process_event(SDL_Event e) {
+
+    if (e.type == SDL_QUIT) {
+        return;
+    }
+
+    // Record the last arrow key pressed so we can update player image appropriately.
+    if (e.type == SDL_KEYDOWN) {
+        if (is_directional_key(e.key.keysym.scancode)) {
+            LAST_DIRECTION_PRESSED = e.key.keysym.scancode;
+        }
+    }
+
+}
+
+
 /// Run the main game loop.
 void run_game_loop(GUI gui, GameState game_state) {
 
@@ -53,12 +78,12 @@ void run_game_loop(GUI gui, GameState game_state) {
 		last_update = now;
         lag += elapsed;
 		
-	    // Poll events. This implicitly calls SDL_PumpEvents, which will update
-    	// the state of the keymap under the hood. Unless it's a quit event, we
-    	// don't actually do anything yet until it's time to update the game state.
+	    // Poll events. This implicitly calls SDL_PumpEvents, which will update the state of the keymap under the hood,
+        // so we don't have to worry about doing that just yet.
 		while(SDL_PollEvent(&e) != 0) {
-            // printf("Key %s\n", SDL_GetKeyName(e.key.keysym.sym));
-			if (e.type == SDL_QUIT) return;
+            if (e.type == SDL_QUIT)
+                goto end_of_game_loop;
+            process_event(e);
 		}
 
         // Update the game state.
@@ -72,7 +97,10 @@ void run_game_loop(GUI gui, GameState game_state) {
 		render_game(gui, game_state);
 		
 	}
-	
+
+    end_of_game_loop:;
+
+
 	/* Main game loop goes here. */
 	// SDL_Delay(5000);
 	

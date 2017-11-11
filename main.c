@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
 
 	// Set up the game state.
 	GameState game_state = make_game_state(gui);
-    init_game(game_state, GRAPH_SIZE, DFS_WITH_BACKTRACKING);
+    init_game(game_state, gui, GRAPH_SIZE, DFS_WITH_BACKTRACKING);
 
 	// Run the game.
 	run_game_loop(gui, game_state);
