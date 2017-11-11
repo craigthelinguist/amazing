@@ -42,10 +42,10 @@ void add_entity(GameState game_state, GUI gui, int32_t xpos, int32_t ypos, char 
                 fprintf(stderr, "Could not find directory %s", ASSET_DIRECTORY);
                 break;
             case FILE_NOT_FOUND:
-                fprintf(stderr, "Could not find asset `celes.png`");
+                fprintf(stderr, "Could not find asset `%s`", image_name);
                 break;
             case FILE_NAME_TOO_LONG:
-                fprintf(stderr, "`celes.png` is too long a file name.");
+                fprintf(stderr, "`%s` is too long a file name.", image_name);
                 break;
             case LIBRARY_FULL:
                 fprintf(stderr, "The image library is full.");
@@ -65,8 +65,9 @@ void add_entity(GameState game_state, GUI gui, int32_t xpos, int32_t ypos, char 
 }
 
 GameState make_game_state(GUI gui) {
-    GameState game_state = calloc(1, sizeof(GameState));
-    // add_entity(game_state, gui, 0, 0, "celes.png");
+    GameState game_state = calloc(1, sizeof(struct GameState));
+    game_state->num_entities = 0;
+    add_entity(game_state, gui, 0, 0, "celes.png");
     return game_state;
 }
 

@@ -36,7 +36,7 @@ void render_game(GUI gui, GameState game_state) {
 
 void draw_entities(GUI gui, GameState game_state) {
 	Camera camera = game_state->camera;
-	for (int32_t index = 0; index <= game_state->num_entities; index++) {
+	for (int32_t index = 0; index < game_state->num_entities; index++) {
 		Entity entity = game_state->entities[index];
 		draw_image(gui, camera, entity.image, entity.xpos, entity.ypos);
 	}
