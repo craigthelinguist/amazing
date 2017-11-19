@@ -9,6 +9,7 @@
 
 #include <SDL_Image.h>
 
+#include "file_io.h"
 #include "graphical_constants.h"
 #include "imagelib0.h"
 
@@ -32,45 +33,6 @@ static struct ImageLib lib;
 
 /// The error code for when library calls go wrong.
 ImageLibErr IMAGE_LIB_ERR;
-
-char streq(const char *s1, const char *s2) {
-	return !strcmp(s1, s2);
-}
-
-/// Return the character which separates the names in a filepath. E.g. '/' or '\'
-/// This is platform-specific.
-char fpath_separator() {
-	#ifdef __unix__
-    	return '/';
-	#elif defined(_WIN32) || defined(WIN32)
-    	return '\\';
-	#else
-    	fprintf(stderr, "Unknown platform");
-		exit(100);
-	#endif
-}
-
-bool directory_exists(char *dirpath) {
-	struct stat info;
-	if (stat(dirpath, &info) != 0) {
-		return false;
-	} else if (info.st_mode & S_IFDIR) {
-		return true;
-	} else {
-		return false;
-	}
-}
-
-bool file_exists(char *fpath) {
-	struct stat info;
-	if (stat(fpath, &info) != 0) {
-		return false;
-	} else if (info.st_mode & S_IFREG) {
-		return true;
-	} else {
-		return false;
-	}
-}
 
 bool imagelib_init(char *asset_directory, const int maxSize) {
 	if (!directory_exists(asset_directory)) {
@@ -164,18 +126,83 @@ struct Image *imagelib_get(char *fname) {
 	return NULL;
 }
 
+/// Resolve the filename, turning it into an absolute filepath. This mallocs a string, which the caller must free. If
+/// the file does not exist, then `NULL` is returned, and `IMAGE_LIB_ERR` is set to one of the following:
+/// FILE_NAME_TOO_LONG, FILE_NOT_FOUND.
+char *resolve_fname(const char *fname) {
+
+    // Check the file name is not too long.
+    int file_name_len = strlen(fname);
+    if (file_name_len > STRING_SIZE - 1) {
+        IMAGE_LIB_ERR = FILE_NAME_TOO_LONG;
+        return false;
+    }
+
+    // Resolve the file name.
+    int base_path_len = strlen(lib.base_path);
+    char *fpath = malloc(sizeof(char) * (base_path_len + file_name_len + 1));
+    strcpy(fpath, lib.base_path);
+    strcat(fpath, fname);
+
+    // Check the file path exists.
+    if (!file_exists(fpath)) {
+        IMAGE_LIB_ERR = FILE_NOT_FOUND;
+        return false;
+    }
+
+    return fpath;
+
+}
+
 
 /// ===================================================================================================================
 /// The following code is for loading sprite sheets.
 /// ===================================================================================================================
 
-/// Load a JSON object from the given file in the asset directory.
 cJSON *load_json(const char *fpath);
+bool json_is_sprite(cJSON *root, Image *sprite_sheet);
+Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet);
+
+/// Load a sprite with the given name. This will load the image into the library and return the data structure
+/// containing information about the animations for the sprite. On failure, `NULL` is returned, and IMAGE_LIB_ERR is
+/// set.
+Sprite load_sprite(const char *fname, SDL_Renderer *renderer) {
+
+    // TODO
+    return NULL;
+
+}
 
 /// Check if the double `num` is also a natural number.
 bool double_is_nat(double num) {
     double absolute = abs(num);
     return absolute == floor(absolute) && absolute >= 0;
+}
+
+/// Load a JSON object from a .json file.
+cJSON *load_json(const char *fname) {
+
+    // Open the file, if it exists.
+    char *fpath = resolve_fname(fname);
+    if (!fpath) return NULL;
+    FILE *fhandle = fopen(fpath, "rb");
+
+    // Compute the length of the file.
+    fseek(fhandle, 0, SEEK_END);
+    size_t file_size = ftell(fhandle);
+    rewind(fhandle);
+
+    // Load contents into a string and parse as JSON.
+    char *file_contents = malloc(sizeof(char) * file_size);
+    fread(file_contents, sizeof(char), file_size, fhandle);
+    fclose(fhandle);
+    cJSON *data = cJSON_Parse(file_contents);
+
+    // Clean up and return.
+    free(fpath);
+    free(file_contents);
+    return data;
+
 }
 
 
