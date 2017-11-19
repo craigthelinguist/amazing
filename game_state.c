@@ -13,7 +13,6 @@
 
 static char *ASSET_DIRECTORY = "assets";
 
-
 Image *get_image(char *image_name) {
     Image *image = imagelib_get(image_name);
     if (!image) {
