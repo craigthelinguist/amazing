@@ -23,8 +23,17 @@ Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet);
 /// FILE_NAME_TOO_LONG, FILE_NOT_FOUND.
 char *resolve_fname(const char *fname);
 
+
+/// Construct a new string by appending `suffix` onto `string`. This allocates memory, which should be freed by the
+/// caller.
+char *fname_append(const char *string, const char *suffix);
+
 /// Strip the asset directory from the given `fpath`, returning the `fname`. This allocates memory which the user must
 /// free.
 char *strip_directory(const char *fpath);
+
+/// Load a cJSON object from the given file.
+cJSON *load_json(const char *fname);
+cJSON *load_json_absolute(const char *fpath);
 
 #endif

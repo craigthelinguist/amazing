@@ -34,7 +34,7 @@ static struct ImageLib lib;
 /// The error code for when library calls go wrong.
 ImageLibErr IMAGE_LIB_ERR;
 
-bool imagelib_init(char *asset_directory, const int maxSize) {
+bool imagelib_init(const char *asset_directory, const int maxSize) {
 	if (!directory_exists(asset_directory)) {
 		IMAGE_LIB_ERR = DIRECTORY_NOT_FOUND;
 		return false;
@@ -60,7 +60,9 @@ void imagelib_free() {
 	free(lib.entries);
 }
 
-bool imagelib_load_absolute(char *fpath, char *fname, SDL_Renderer *renderer) {
+/// Load an image from the given absolute filepath. The relative file name is also needed, as the image will be keyed on
+/// this in the library.
+bool imagelib_load_absolute(const char *fpath, const char *fname, SDL_Renderer *renderer) {
 
 	if (!file_exists(fpath)) {
 		IMAGE_LIB_ERR = FILE_NOT_FOUND;
@@ -95,7 +97,7 @@ bool imagelib_load_absolute(char *fpath, char *fname, SDL_Renderer *renderer) {
 
 }
 
-bool imagelib_load(char *fname, SDL_Renderer *renderer) {
+bool imagelib_load(const char *fname, SDL_Renderer *renderer) {
 
     // Check if the image is already loaded.
     if (imagelib_get(fname) != NULL) {
@@ -127,7 +129,7 @@ bool imagelib_load(char *fname, SDL_Renderer *renderer) {
 
 }
 
-struct Image *imagelib_get(char *fname) {
+struct Image *imagelib_get(const char *fname) {
 	for (int i = 0; i < lib.size; i++) {
 		if (!strcmp(fname, lib.entries[i].fname))
 			return &(lib.entries[i].image);
@@ -136,7 +138,7 @@ struct Image *imagelib_get(char *fname) {
 	return NULL;
 }
 
-char *fname_append(char *string, char *suffix) {
+char *fname_append(const char *string, const char *suffix) {
     int alloc_size = strlen(string) + strlen(suffix) + 1;
     char *result = calloc(sizeof(char), alloc_size);
     strcpy(result, string);
@@ -185,8 +187,23 @@ Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet);
 /// set.
 Sprite load_sprite(const char *fname, SDL_Renderer *renderer) {
 
-    // TODO
-    return NULL;
+    // If the associated image hasn't been loaded, then load it.
+    if (!imagelib_load(fname, renderer))
+        return NULL;
+    Image *image = imagelib_get(fname);
+
+    // Now open the metadata in the .json file.
+    char *json_fname = fname_append(fname, ".json");
+    char *json_fpath = resolve_fname(json_fname);
+    cJSON *json = load_json_absolute(json_fpath);
+
+    // Parse the JSON as a sprite sheet.
+    Sprite sprite = NULL;
+    if (json_is_sprite(json, image))
+        sprite = sprite_from_json(json, image);
+    free(json_fname);
+    free(json_fpath);
+    return sprite;
 
 }
 
