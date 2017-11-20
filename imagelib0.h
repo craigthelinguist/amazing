@@ -18,4 +18,13 @@ bool json_is_sprite(cJSON *root, Image *sprite_sheet);
 /// should free.
 Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet);
 
+/// Resolve the filename, turning it into an absolute filepath. This mallocs a string, which the caller must free. If
+/// the file does not exist, then `NULL` is returned, and `IMAGE_LIB_ERR` is set to one of the following:
+/// FILE_NAME_TOO_LONG, FILE_NOT_FOUND.
+char *resolve_fname(const char *fname);
+
+/// Strip the asset directory from the given `fpath`, returning the `fname`. This allocates memory which the user must
+/// free.
+char *strip_directory(const char *fpath);
+
 #endif

@@ -72,16 +72,16 @@ void update_game(GameState game_state, KeyStateMap key_state) {
     Image *image;
     switch (LAST_DIRECTION_PRESSED) {
         case SDL_SCANCODE_LEFT:
-            image = get_image("celes-left.png");
+            image = get_image("celes-left");
             break;
         case SDL_SCANCODE_RIGHT:
-            image = get_image("celes-right.png");
+            image = get_image("celes-right");
             break;
         case SDL_SCANCODE_UP:
-            image = get_image("celes-up.png");
+            image = get_image("celes-up");
             break;
         case SDL_SCANCODE_DOWN:
-            image = get_image("celes-down.png");
+            image = get_image("celes-down");
             break;
         default:
             image = NULL;
@@ -98,6 +98,11 @@ void add_entity(GameState game_state, GUI gui, int32_t xpos, int32_t ypos, char 
 
     // Create the entity.
     Image *image = imagelib_get(image_name);
+    if (!image) {
+        fprintf(stderr, "Error loading image `%s` while adding entity.", image_name);
+        exit(880);
+    }
+
     Entity player_entity = (Entity) {xpos, ypos, image};
     game_state->entities[game_state->num_entities++] = player_entity;
 
@@ -119,7 +124,6 @@ void free_game_state(GameState game_state) {
 /// freed.
 void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_algo) {
 
-
     game_state->graph = GRAPH_Make(maze_size, maze_algo);
     game_state->camera = make_camera(0, 0);
 
@@ -129,13 +133,14 @@ void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_a
     int start_pos_y = TILE_HEIGHT/2 - COLLISION_SIZE/2;
 
     // Load player images.
-    load_image(gui, "celes-left.png");
-    load_image(gui, "celes-right.png");
-    load_image(gui, "celes-up.png");
-    load_image(gui, "celes-down.png");
+    load_image(gui, "celes-left");
+    load_image(gui, "celes-right");
+    load_image(gui, "celes-up");
+    load_image(gui, "celes-down");
 
     // Create the player entity.
-    add_entity(game_state, gui, start_pos_x, start_pos_y, "celes-down.png");
+    add_entity(game_state, gui, start_pos_x, start_pos_y, "celes-down");
+
 }
 
 

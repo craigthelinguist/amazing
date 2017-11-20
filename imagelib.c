@@ -60,29 +60,7 @@ void imagelib_free() {
 	free(lib.entries);
 }
 
-bool imagelib_load(char *fname, SDL_Renderer *renderer) {
-
-    // Check if the image is already loaded.
-    if (imagelib_get(fname) != NULL) {
-		return true;
-	}
-
-	if (lib.size == lib.capacity) {
-		IMAGE_LIB_ERR = LIBRARY_FULL;
-		return false;
-	}
-
-	int file_name_len = strlen(fname);
-	if (file_name_len > STRING_SIZE - 1) {
-		IMAGE_LIB_ERR = FILE_NAME_TOO_LONG;
-		return false;
-	}
-
-	// Resolve the file name.
-	int base_path_len = strlen(lib.base_path);
-	char fpath[base_path_len + file_name_len + 1];
-	strcpy(fpath, lib.base_path);
-	strcat(fpath, fname);
+bool imagelib_load_absolute(char *fpath, char *fname, SDL_Renderer *renderer) {
 
 	if (!file_exists(fpath)) {
 		IMAGE_LIB_ERR = FILE_NOT_FOUND;
@@ -95,13 +73,13 @@ bool imagelib_load(char *fname, SDL_Renderer *renderer) {
 		return false;
 	}
 
-	SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);	
+	SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
 	if (!texture) {
 		IMAGE_LIB_ERR = SDL_ERROR;
 		free(surface);
 		return false;
 	}
-	
+
 	// Store the texture and image entries.
 	lib.entries[lib.size].image.wd = surface->w;
 	lib.entries[lib.size].image.ht = surface->h;
@@ -114,7 +92,39 @@ bool imagelib_load(char *fname, SDL_Renderer *renderer) {
 	lib.size++;
 	SDL_FreeSurface(surface);
 	return true;
-	
+
+}
+
+bool imagelib_load(char *fname, SDL_Renderer *renderer) {
+
+    // Check if the image is already loaded.
+    if (imagelib_get(fname) != NULL) {
+		return true;
+	}
+
+	// Check if there is space in the library.
+	if (lib.size == lib.capacity) {
+		IMAGE_LIB_ERR = LIBRARY_FULL;
+		return false;
+	}
+
+	// Check if the name of the file isn't too long.
+	int file_name_len = strlen(fname);
+	if (file_name_len > STRING_SIZE - 1) {
+		IMAGE_LIB_ERR = FILE_NAME_TOO_LONG;
+		return false;
+	}
+
+    // Append the file extension and get the absolute path.
+    char *fname_with_extension = fname_append(fname, ".png");
+	char *fpath = resolve_fname(fname_with_extension);
+
+    // Now load the image.
+	bool result = imagelib_load_absolute(fpath, fname, renderer);
+	free(fname_with_extension);
+    free(fpath);
+    return result;
+
 }
 
 struct Image *imagelib_get(char *fname) {
@@ -124,6 +134,14 @@ struct Image *imagelib_get(char *fname) {
 	}
 	IMAGE_LIB_ERR = NO_SUCH_IMAGE;
 	return NULL;
+}
+
+char *fname_append(char *string, char *suffix) {
+    int alloc_size = strlen(string) + strlen(suffix) + 1;
+    char *result = calloc(sizeof(char), alloc_size);
+    strcpy(result, string);
+    strcat(result, suffix);
+    return result;
 }
 
 /// Resolve the filename, turning it into an absolute filepath. This mallocs a string, which the caller must free. If
@@ -154,7 +172,6 @@ char *resolve_fname(const char *fname) {
 
 }
 
-
 /// ===================================================================================================================
 /// The following code is for loading sprite sheets.
 /// ===================================================================================================================
@@ -179,30 +196,38 @@ bool double_is_nat(double num) {
     return absolute == floor(absolute) && absolute >= 0;
 }
 
+cJSON *load_json_absolute(const char *fpath) {
+
+	if (!file_exists(fpath)) {
+		IMAGE_LIB_ERR = FILE_NOT_FOUND;
+		return NULL;
+	}
+
+	// Compute the length of the file.
+	FILE *fhandle = fopen(fpath, "rb");
+	fseek(fhandle, 0, SEEK_END);
+	size_t file_size = ftell(fhandle);
+	rewind(fhandle);
+
+	// Load contents into a string and parse as JSON.
+	char *file_contents = malloc(sizeof(char) * file_size);
+	fread(file_contents, sizeof(char), file_size, fhandle);
+	fclose(fhandle);
+	cJSON *data = cJSON_Parse(file_contents);
+
+	// Clean up and return.
+	free(file_contents);
+	return data;
+
+}
+
 /// Load a JSON object from a .json file.
 cJSON *load_json(const char *fname) {
-
-    // Open the file, if it exists.
-    char *fpath = resolve_fname(fname);
-    if (!fpath) return NULL;
-    FILE *fhandle = fopen(fpath, "rb");
-
-    // Compute the length of the file.
-    fseek(fhandle, 0, SEEK_END);
-    size_t file_size = ftell(fhandle);
-    rewind(fhandle);
-
-    // Load contents into a string and parse as JSON.
-    char *file_contents = malloc(sizeof(char) * file_size);
-    fread(file_contents, sizeof(char), file_size, fhandle);
-    fclose(fhandle);
-    cJSON *data = cJSON_Parse(file_contents);
-
-    // Clean up and return.
-    free(fpath);
-    free(file_contents);
-    return data;
-
+	char *fpath = resolve_fname(fname);
+	if (!fpath) return NULL;
+	cJSON *obj = load_json_absolute(fpath);
+	free(fpath);
+	return obj;
 }
 
 

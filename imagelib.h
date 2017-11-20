@@ -50,6 +50,8 @@ struct Image *imagelib_get(char *fname);
 /// FILE_NAME_TOO_LONG, or LIBRARY_FULL.
 bool imagelib_load(char *fname, SDL_Renderer *renderer);
 
-
+/// Construct a new string by appending `suffix` onto `string`. This allocates memory, which should be freed by the
+/// caller.
+char *fname_append(char *string, char *suffix);
 
 #endif
