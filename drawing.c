@@ -23,6 +23,21 @@ void draw_image(GUI gui, Camera camera, struct Image *image, int x, int y) {
 	*/
 }
 
+void draw_image_offset(GUI gui, Camera camera, struct Image *image, int x, int y, int off_x, int off_y, int wd, int ht) {
+
+	// Select the part of the texture to be rendered.
+	SDL_Rect texture_rect = {off_x, off_y, wd, ht};
+
+	// Compute the position on the screen where it should be drawn.
+	Point_Int32 pt = offset_point(gui, camera, x, y);
+	SDL_Rect position_rect = {pt.x, pt.y, wd, ht};
+
+	SDL_RenderCopy(get_renderer(gui), image->texture, &texture_rect ,&position_rect);
+
+}
+
+
+
 void draw_rect(GUI gui, Camera camera, const int64_t x, const int64_t y, const int64_t wd, const int64_t ht) {
 	Point_Int32 pt = offset_point(gui, camera, x, y);
 	SDL_Rect rect = {pt.x, pt.y, wd, ht};

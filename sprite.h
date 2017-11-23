@@ -15,4 +15,7 @@ typedef struct Sprite *Sprite;
 /// \return true iff there is an animation with that name.
 bool set_anim_name(Sprite sprite, const char *name, long long time_ms);
 
+/// Updates the frame for the current animation (if it needs to be updated).
+void animate(Sprite sprite, long long time_ms);
+
 #endif

@@ -8,15 +8,17 @@
 bool set_anim_name(Sprite sprite, const char *name, long long time_ms) {
 
     // Find the animation with the appropriate name (if it exists).
-    Animation anim = get_anim_by_name(sprite, name);
+    struct Animation *anim = get_anim_by_name(sprite, name);
     if (!anim) {
         return false;
     }
 
-    // Update sprite information.
-    sprite->frame_age = time_ms;
-    sprite->current_animation = anim;
-    sprite->current_frame = 0;
+    // Update sprite information, if it is a different animation.
+    if (anim != sprite->current_animation) {
+        sprite->frame_age = time_ms;
+        sprite->current_animation = anim;
+        sprite->current_frame = 0;
+    }
     return true;
 
 }
@@ -63,5 +65,11 @@ struct Animation *get_anim_by_name(Sprite sprite, const char *anim_name) {
 
 }
 
-
-
+void animate(Sprite sprite, long long time_ms) {
+    const long long UPDATE_DELAY = sprite->current_animation->frame_delay;
+    if (time_ms - sprite->frame_age > UPDATE_DELAY) {
+        sprite->current_frame += 1;
+        sprite->current_frame %= sprite->current_animation->num_frames;
+        sprite->frame_age = time_ms;
+    }
+}
