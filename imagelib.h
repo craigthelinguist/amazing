@@ -2,10 +2,12 @@
 #ifndef IMAGELIB_H
 #define IMAGELIB_H
 
-#include <stdbool.h>
+
 #include <SDL2/SDL.h>
+#include <stdbool.h>
 
 #include "image.h"
+#include "sprite.h"
 
 enum ImageLibErr {
     OK,
@@ -49,5 +51,7 @@ struct Image *imagelib_get(const char *fname);
 /// returned, and `IMAGE_LIB_ERR` will be set to one of the following error values: DIRECTORY_NOT_FOUND, FILE_NOT_FOUND,
 /// FILE_NAME_TOO_LONG, or LIBRARY_FULL.
 bool imagelib_load(const char *fname, SDL_Renderer *renderer);
+
+Sprite load_sprite(const char *fname, SDL_Renderer *renderer);
 
 #endif

@@ -346,7 +346,7 @@ Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet) {
     struct Sprite *sprite = calloc(1, sprite_size);
 
     // Initialise the fields in the sprite. The rest default to zero (because of `calloc`).
-    sprite->num_animations = num_animations;
+	sprite->num_animations = num_animations;
     // TODO: it doesn't like compiling without the cast. Why?
     sprite->current_animation = (struct Animation *) &sprite->animations; // the first animation
 
@@ -357,15 +357,16 @@ Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet) {
         // Initialise the fields in the array.
         struct Animation *animation = (struct Animation *) index_ptr;
         strcpy(animation->name, anim->string);
-        animation->num_frames = cJSON_GetArraySize(anim);
+        animation->num_frames = cJSON_GetArraySize(anim) / 2;
 
         // Load the offsets into the array.
         cJSON *offset = anim->child;
-        for (int j = 0; !offset;) {
-            animation->offsets[j++].x = (int) floor(offset->valuedouble);
+        for (int j = 0; offset != NULL; j++) {
+            uint16_t x = (int) floor(offset->valuedouble);
             offset = offset->next;
-            animation->offsets[j++].y = (int) floor(offset->valuedouble);
+            uint16_t y = (int) floor(offset->valuedouble);
             offset = offset->next;
+            animation->offsets[j] = (struct Offset) {x, y};
         }
 
         // Figure out where the next Animation starts.

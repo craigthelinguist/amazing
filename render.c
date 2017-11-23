@@ -4,7 +4,9 @@
 #include "camera0.h"
 #include "drawing.h"
 #include "game_state.h"
+#include "graphical_constants.h"
 #include "render.h"
+#include "sprite0.h"
 #include "stdbool.h"
 
 // Some default colours.
@@ -34,12 +36,35 @@ void render_game(GUI gui, GameState game_state) {
 void draw_entities(GUI gui, GameState game_state) {
     Camera camera = game_state->camera;
     for (int32_t index = 0; index < game_state->num_entities; index++) {
-        Entity entity = game_state->entities[index];
-        int image_height = entity.image->ht;
-        int image_top_y = entity.ypos - MAX(image_height - COLLISION_SIZE, 0);
-        draw_image(gui, camera, entity.image, entity.xpos, image_top_y);
+        Entity *entity = &game_state->entities[index];
+
+        // Dimensions of the frame to draw.
+		int IMAGE_WD = SPRITE_WD;
+		int IMAGE_HT = SPRITE_HT;
+        int image_top_y = entity->ypos - MAX(IMAGE_HT - SPRITE_COLLISION_HT, 0);
+
+        // The image to be drawn.
+        Image *image = entity->sprite->sprite_sheet;
+
+        // The current frame of the current animation.
+        struct Offset offset = get_current_frame(entity->sprite);
+
+        /*
+        draw_image_offset(
+                gui,
+                camera,
+                image,
+                entity->xpos,
+                image_top_y,
+                offset.x,
+                offset.y,
+                IMAGE_WD,
+                IMAGE_HT
+        );
+        */
+
         set_drawcol(gui, 0, 255, 0, 0);
-        draw_rect(gui, camera, entity.xpos, entity.ypos, COLLISION_SIZE, COLLISION_SIZE);
+        draw_rect(gui, camera, entity->xpos, entity->ypos, COLLISION_SIZE, COLLISION_SIZE);
     }
 }
 

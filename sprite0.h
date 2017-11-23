@@ -12,13 +12,6 @@
 
 #define MAX_ANIMATION_NAME_LEN 64
 
-/// An offset is a single frame in an animation. (left, top) is the coordinates of the top-left of a single frame in the
-/// sprite sheet.
-struct Offset {
-    uint16_t x;
-    uint16_t y;
-};
-
 /// An animation is a fixed collection of frames. Each animation has a `name`, by which they are referred, and a
 /// `frame_delay`, which controls how quickly an animation toggles through its frames.
 struct Animation {

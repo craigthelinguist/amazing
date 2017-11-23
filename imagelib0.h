@@ -23,7 +23,6 @@ Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet);
 /// FILE_NAME_TOO_LONG, FILE_NOT_FOUND.
 char *resolve_fname(const char *fname);
 
-
 /// Construct a new string by appending `suffix` onto `string`. This allocates memory, which should be freed by the
 /// caller.
 char *fname_append(const char *string, const char *suffix);

@@ -88,9 +88,10 @@ void run_game_loop(GUI gui, GameState game_state) {
 
         // Update the game state.
         while (lag >= MS_PER_UPDATE) {
+            Milliseconds update_time = time_ms();
             KeyStateMap key_state = SDL_GetKeyboardState(NULL);
             update_keymaps(key_state);
-            update_game(game_state, key_state);
+            update_game(game_state, key_state, update_time);
             lag -= MS_PER_UPDATE;
         }
 

@@ -19,6 +19,8 @@ bool set_anim_name(Sprite sprite, const char *name, long long time_ms) {
         sprite->current_animation = anim;
         sprite->current_frame = 0;
     }
+
+
     return true;
 
 }
@@ -53,6 +55,7 @@ struct Animation *get_anim_by_name(Sprite sprite, const char *anim_name) {
     // Step along the array.
     for (int i = 0; i < sprite->num_animations; i++) {
         struct Animation *anim = (struct Animation *) needle;
+
         if (!strcmp(anim->name, anim_name)) {
             found_name = true;
             break;
@@ -72,4 +75,11 @@ void animate(Sprite sprite, long long time_ms) {
         sprite->current_frame %= sprite->current_animation->num_frames;
         sprite->frame_age = time_ms;
     }
+}
+
+struct Offset get_current_frame(Sprite sprite) {
+    int8_t current_frame = sprite->current_frame;
+    Animation anim = sprite->current_animation;
+    struct Offset *offset = anim->offsets;
+    return anim->offsets[current_frame];
 }

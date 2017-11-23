@@ -7,6 +7,7 @@
 #include "game_state0.h"
 #include "imagelib.h"
 #include "render.h"
+#include "sprite.h"
 
 // The index containing the player.
 #define PLAYER_ENTITY_INDEX 0
@@ -52,7 +53,7 @@ void load_image(GUI gui, char *image_name) {
 }
 
 
-void update_game(GameState game_state, KeyStateMap key_state) {
+void update_game(GameState game_state, KeyStateMap key_state, long long update_time) {
 
     // Check direction player should move in.
     int32_t dx = 0;
@@ -68,44 +69,36 @@ void update_game(GameState game_state, KeyStateMap key_state) {
     pan_camera(game_state->camera, dx, dy);
 
     // Update player image.
+    Sprite sprite = game_state->entities[PLAYER_ENTITY_INDEX].sprite;
 
-    Image *image;
     switch (LAST_DIRECTION_PRESSED) {
         case SDL_SCANCODE_LEFT:
-            image = get_image("celes-left");
+            set_anim_name(sprite, "left", update_time);
             break;
         case SDL_SCANCODE_RIGHT:
-            image = get_image("celes-right");
+            set_anim_name(sprite, "right", update_time);
             break;
         case SDL_SCANCODE_UP:
-            image = get_image("celes-up");
+            set_anim_name(sprite, "up", update_time);
             break;
         case SDL_SCANCODE_DOWN:
-            image = get_image("celes-down");
+            set_anim_name(sprite, "down", update_time);
             break;
         default:
-            image = NULL;
             break;
-    }
-
-    if (image) {
-        game_state->entities[PLAYER_ENTITY_INDEX].image = image;
     }
 
 }
 
-void add_entity(GameState game_state, GUI gui, int32_t xpos, int32_t ypos, char *image_name) {
-
-    // Create the entity.
-    Image *image = imagelib_get(image_name);
-    if (!image) {
-        fprintf(stderr, "Error loading image `%s` while adding entity.", image_name);
-        exit(880);
+void add_entity(GameState game_state, GUI gui, int32_t xpos, int32_t ypos, char *sprite_sheet_name) {
+    Sprite sprite = load_sprite(sprite_sheet_name, gui->renderer);
+    if (!sprite) {
+        fprintf(stderr, "Failed to load sprite %s\n", sprite_sheet_name);
+        // TODO: print the error message
+        exit(534);
     }
-
-    Entity player_entity = (Entity) {xpos, ypos, image};
+    Entity player_entity = (Entity) {xpos, ypos, sprite};
     game_state->entities[game_state->num_entities++] = player_entity;
-
 }
 
 GameState make_game_state(GUI gui) {
@@ -132,14 +125,8 @@ void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_a
     int start_pos_x = TILE_WIDTH/2 - COLLISION_SIZE/2;
     int start_pos_y = TILE_HEIGHT/2 - COLLISION_SIZE/2;
 
-    // Load player images.
-    load_image(gui, "celes-left");
-    load_image(gui, "celes-right");
-    load_image(gui, "celes-up");
-    load_image(gui, "celes-down");
-
     // Create the player entity.
-    add_entity(game_state, gui, start_pos_x, start_pos_y, "celes-down");
+    add_entity(game_state, gui, start_pos_x, start_pos_y, "celes");
 
 }
 

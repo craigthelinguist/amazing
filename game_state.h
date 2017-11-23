@@ -13,7 +13,8 @@ typedef struct GameState *GameState;
 ///
 /// \param game_state: the current state of the game.
 /// \param key_state: a snapshot of the keyboard in this frame.
-void update_game(GameState game_state, KeyStateMap key_state);
+/// \param update_time: the time which the update took place.
+void update_game(GameState game_state, KeyStateMap key_state, long long update_time);
 
 GameState make_game_state(GUI gui);
 
