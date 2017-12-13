@@ -49,7 +49,6 @@ void draw_entities(GUI gui, GameState game_state) {
         // The current frame of the current animation.
         struct Offset offset = get_current_frame(entity->sprite);
 
-        /*
         draw_image_offset(
                 gui,
                 camera,
@@ -58,10 +57,9 @@ void draw_entities(GUI gui, GameState game_state) {
                 image_top_y,
                 offset.x,
                 offset.y,
-                IMAGE_WD,
-                IMAGE_HT
+                SPRITE_WD,
+                SPRITE_HT
         );
-        */
 
         set_drawcol(gui, 0, 255, 0, 0);
         draw_rect(gui, camera, entity->xpos, entity->ypos, COLLISION_SIZE, COLLISION_SIZE);

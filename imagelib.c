@@ -183,22 +183,24 @@ bool json_is_sprite(cJSON *root, Image *sprite_sheet);
 Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet);
 
 /// Load a sprite with the given name. This will load the image into the library and return the data structure
-/// containing information about the animations for the sprite. On failure, `NULL` is returned, and IMAGE_LIB_ERR is
-/// set.
+/// containing information about the animations for the sprite. On failure, `NULL` is returned, and IMAGE_LIB_ERR is set.
 Sprite load_sprite(const char *fname, SDL_Renderer *renderer) {
 
     // If the associated image hasn't been loaded, then load it.
     if (!imagelib_load(fname, renderer))
         return NULL;
     Image *image = imagelib_get(fname);
-
+    if (!image) {
+        return NULL;
+    }
+    
     // Now open the metadata in the .json file.
     char *json_fname = fname_append(fname, ".json");
     char *json_fpath = resolve_fname(json_fname);
     cJSON *json = load_json_absolute(json_fpath);
 
     // Parse the JSON as a sprite sheet.
-    Sprite sprite = NULL;
+    struct Sprite *sprite = NULL;
     if (json_is_sprite(json, image))
         sprite = sprite_from_json(json, image);
     free(json_fname);
@@ -325,9 +327,9 @@ bool json_is_sprite(cJSON *root, Image *sprite_sheet) {
 
 
 
-/// Create a new sprite from the given JSON object. No error-checking is done if the JSON object is invalid; you should
-/// call `json_is_sprite` to ensure that it is valid before calling this. A fresh Sprite is allocated, which the caller
-/// should free.
+/// Create, initialise, and return a new sprite from the given sprite sheet and JSON object. No error-checking is done if the
+/// JSON object is invalid; you should call `json_is_sprite` to ensure that it is valid before calling this. A fresh Sprite is
+/// allocated, which must be freed by the caller.
 Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet) {
 
     // Figure out how many animations in the sprite, and how many frames in all the animations.
@@ -344,9 +346,10 @@ Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet) {
                       + sizeof(struct Animation) * num_animations
                       + sizeof(struct Offset) * total_num_frames;
     struct Sprite *sprite = calloc(1, sprite_size);
-
+    sprite->sprite_sheet = sprite_sheet;
+    
     // Initialise the fields in the sprite. The rest default to zero (because of `calloc`).
-	sprite->num_animations = num_animations;
+    sprite->num_animations = num_animations;
     // TODO: it doesn't like compiling without the cast. Why?
     sprite->current_animation = (struct Animation *) &sprite->animations; // the first animation
 
