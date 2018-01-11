@@ -20,7 +20,6 @@ bool set_anim_name(Sprite sprite, const char *name, long long time_ms) {
         sprite->current_frame = 0;
     }
 
-
     return true;
 
 }

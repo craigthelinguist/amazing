@@ -68,9 +68,8 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
     game_state->entities[PLAYER_ENTITY_INDEX].ypos += dy;
     pan_camera(game_state->camera, dx, dy);
 
-    // Update player image.
+    // Update player sprite's animation name.
     Sprite sprite = game_state->entities[PLAYER_ENTITY_INDEX].sprite;
-
     switch (LAST_DIRECTION_PRESSED) {
         case SDL_SCANCODE_LEFT:
             set_anim_name(sprite, "left", update_time);
@@ -88,6 +87,11 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
             break;
     }
 
+    // If the player is moving, update their sprite's frame. This is no-op if it doesn't need to be updated.
+    if (dx != 0 || dy != 0) {
+      animate(sprite, update_time);
+    }
+    
 }
 
 void add_entity(GameState game_state, GUI gui, int32_t xpos, int32_t ypos, char *sprite_sheet_name) {

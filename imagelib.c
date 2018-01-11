@@ -372,6 +372,13 @@ Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet) {
             animation->offsets[j] = (struct Offset) {x, y};
         }
 
+        // This is the default frame delay.
+        // TODO: update the JSON layout so you can have a custom frame delay for an animation.
+        // TODO: we should also be able to update the frame_delay after loading (for example, if
+        // TODO: a character is running we can use the same animations, but with a shorter
+        // TODO: frame delay).
+        animation->frame_delay = 80;
+        
         // Figure out where the next Animation starts.
         index_ptr += sizeof(struct Animation) + sizeof(struct Offset) * animation->num_frames;
 

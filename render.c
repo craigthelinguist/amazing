@@ -39,8 +39,8 @@ void draw_entities(GUI gui, GameState game_state) {
         Entity *entity = &game_state->entities[index];
 
         // Dimensions of the frame to draw.
-		int IMAGE_WD = SPRITE_WD;
-		int IMAGE_HT = SPRITE_HT;
+        int IMAGE_WD = SPRITE_WD;
+        int IMAGE_HT = SPRITE_HT;
         int image_top_y = entity->ypos - MAX(IMAGE_HT - SPRITE_COLLISION_HT, 0);
 
         // The image to be drawn.
