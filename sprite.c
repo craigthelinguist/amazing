@@ -76,6 +76,10 @@ void animate(Sprite sprite, long long time_ms) {
     }
 }
 
+void reset_animation(Sprite sprite) {
+    sprite->current_frame = 0;
+}
+
 struct Offset get_current_frame(Sprite sprite) {
     int8_t current_frame = sprite->current_frame;
     Animation anim = sprite->current_animation;

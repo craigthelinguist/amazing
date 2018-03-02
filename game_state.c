@@ -104,9 +104,11 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
         }
     }
 
-    // If the player is moving, update their sprite's frame. This is no-op if it doesn't need to be updated.
-    if (dx != 0 || dy != 0) {
-      animate(sprite, update_time);
+    // If the player is standing still, reset their sprite. Otherwise animate the sprite.
+    if (dx == 0 && dy == 0) {
+        reset_animation(sprite);
+    } else {
+        animate(sprite, update_time);
     }
     
 }

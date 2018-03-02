@@ -28,4 +28,7 @@ void animate(Sprite sprite, long long time_ms);
 /// Get the offset into the sprite's sprite sheet of its current frame.
 struct Offset get_current_frame(Sprite sprite);
 
+/// Set the sprite's current frame to be the first image.
+void reset_animation(Sprite sprite);
+
 #endif
