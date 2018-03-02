@@ -11,22 +11,30 @@ void terminate(const char *err_msg) {
 }
 
 struct Graph {
-	int16_t width;	// can be at most 256
-	POINT startPos;	// start of the maze
-	POINT exitPos;	// you win if you get here
-	int16_t nmap[];	// a 2d array of neighbours
+
+    /* Can be at most 256. A maze is always a square. */
+    int16_t width;
+
+    /* Start of the maze. */
+    POINT startPos;
+
+    /* You win if you get here. */
+	POINT exitPos;
+
+    /* 2d array of neighbours. nmap[i] is a bitpacked list of neighbours for tile i. */
+	int16_t nmap[];
 };
 
-int16_t GRAPH_width(struct Graph *g) { return g->width; }
+int16_t graph_width(struct Graph *g) { return g->width; }
 
-int16_t GRAPH_tileAt(struct Graph *g, int16_t xpos, int16_t ypos) {
-	return g->nmap[xpos * GRAPH_width(g) + ypos];
+int16_t graph_has_tile_at(struct Graph *g, int16_t xpos, int16_t ypos) {
+	return g->nmap[xpos * graph_width(g) + ypos];
 }
 
-POINT GRAPH_StartPos(struct Graph *g) { return g->startPos; }
-POINT GRAPH_ExitPos (struct Graph *g) { return g->exitPos;  }
+POINT graph_start_pos(struct Graph *g) { return g->startPos; }
+POINT graph_exit_pos (struct Graph *g) { return g->exitPos;  }
 
-int16_t GRAPH_isEntryOrExit(struct Graph *g, int16_t xpos, int16_t ypos) {
+int16_t graph_pos_is_entry_or_exit(struct Graph *g, int16_t xpos, int16_t ypos) {
 	return (g->startPos.x = xpos && g->startPos.y == ypos)
 		|| (g->exitPos.x = xpos && g->exitPos.y == ypos);
 }
@@ -49,7 +57,7 @@ enum Direction opposite_direction(enum Direction dir) {
 
 void generate_maze(struct Graph *g);
 
-struct Graph *GRAPH_Make(int16_t width, MazeAlgo generation_algorithm) {
+struct Graph *graph_make(int16_t width, MazeAlgo generation_algorithm) {
 	struct Graph *g = malloc(sizeof(struct Graph) + sizeof(int16_t) * width * width);
 	g->width = width;
 	
@@ -72,7 +80,7 @@ struct Graph *GRAPH_Make(int16_t width, MazeAlgo generation_algorithm) {
 	return g;
 }
 
-void GRAPH_Free(struct Graph *graph) {
+void graph_free(struct Graph *graph) {
 	free(graph);
 
 }
@@ -124,7 +132,7 @@ int16_t is_connected(TILE nmap, enum Direction dir) {
 }
 
 int16_t is_connected2(struct Graph *g, POINT p, enum Direction dir) {
-	TILE t = GRAPH_tileAt(g, p.x, p.y);
+	TILE t = graph_has_tile_at(g, p.x, p.y);
 	return !!(t & (1 << dir));
 }
 

@@ -70,21 +70,38 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
 
     // Update player sprite's animation name.
     Sprite sprite = game_state->entities[PLAYER_ENTITY_INDEX].sprite;
-    switch (LAST_DIRECTION_PRESSED) {
-        case SDL_SCANCODE_LEFT:
-            set_anim_name(sprite, "left", update_time);
-            break;
-        case SDL_SCANCODE_RIGHT:
+
+    // if LAST_DIRECTION_PRESSED is currently held down, that is where the sprite should face.
+    if (KEY_DOWN_MAP[LAST_DIRECTION_PRESSED]) {
+        switch (LAST_DIRECTION_PRESSED) {
+            case SDL_SCANCODE_LEFT:
+                set_anim_name(sprite, "left", update_time);
+                break;
+            case SDL_SCANCODE_RIGHT:
+                set_anim_name(sprite, "right", update_time);
+                break;
+            case SDL_SCANCODE_UP:
+                set_anim_name(sprite, "up", update_time);
+                break;
+            case SDL_SCANCODE_DOWN:
+                set_anim_name(sprite, "down", update_time);
+                break;
+            default:
+                break;
+        }
+    }
+
+    // Otherwise if moving in either orthogonal direction , that is where the sprite should face.
+    else {
+        if (dx > 0) {
             set_anim_name(sprite, "right", update_time);
-            break;
-        case SDL_SCANCODE_UP:
+        } else if (dx < 0) {
+            set_anim_name(sprite, "left", update_time);
+        } else if (dy < 0) {
             set_anim_name(sprite, "up", update_time);
-            break;
-        case SDL_SCANCODE_DOWN:
+        } else if (dy > 0) {
             set_anim_name(sprite, "down", update_time);
-            break;
-        default:
-            break;
+        }
     }
 
     // If the player is moving, update their sprite's frame. This is no-op if it doesn't need to be updated.
@@ -112,7 +129,7 @@ GameState make_game_state(GUI gui) {
 }
 
 void free_game_state(GameState game_state) {
-    if (!game_state->graph) GRAPH_Free(game_state->graph);
+    if (!game_state->graph) graph_free(game_state->graph);
     if (!game_state->camera) free_camera(game_state->camera);
     free(game_state);
 }
@@ -121,11 +138,11 @@ void free_game_state(GameState game_state) {
 /// freed.
 void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_algo) {
 
-    game_state->graph = GRAPH_Make(maze_size, maze_algo);
+    game_state->graph = graph_make(maze_size, maze_algo);
     game_state->camera = make_camera(0, 0);
 
     // This is the starting position of the player.
-    POINT startPos = GRAPH_StartPos(game_state->graph);
+    POINT startPos = graph_start_pos(game_state->graph);
     int start_pos_x = TILE_WIDTH/2 - COLLISION_SIZE/2;
     int start_pos_y = TILE_HEIGHT/2 - COLLISION_SIZE/2;
 
