@@ -100,14 +100,18 @@ int in_bounds(GRAPH g, POINT p) {
 	return p.x >= 0 && p.y >= 0 && p.x < g->width && p.y < g->width;
 }
 
-void check_point_in_bounds(struct Graph *g, POINT p) {	
+void check_point_in_bounds(struct Graph *g, POINT p) {
 	if (!in_bounds(g, p)) {
-		fprintf(stderr, "Point (%d, %d) is out of bounds.", p.x, p.y);
+		fprintf(stderr, "SNAP: Point (%d, %d) is out of bounds.\n", p.x, p.y);
 		exit(1);
 	}
 }
 
-void connect(struct Graph *g, POINT p, enum Direction dir) {
+/**
+ * Connects an edge in a graph. NB: don't rename this to `connect`, as it seems to clash with something in the latest
+ * SDL2 libraries.
+ */
+void connect_edge(struct Graph *g, POINT p, enum Direction dir) {
 	check_point_in_bounds(g, p);
 	g->nmap[p.x * g->width + p.y] |= (1 << dir);
 	p = point_after_moving(p, dir);
@@ -195,7 +199,7 @@ void generate_maze(struct Graph *graph) {
 		
 		// Pick a random neighbour and connect it to the current node.
 		DIRECTION neighbour_dir = random_unvisited_neighbour(graph, visited, current);
-		connect(graph, current, neighbour_dir);
+		connect_edge(graph, current, neighbour_dir);
 		
 		// Put current node back onto the stack, followed by the neighbour.
 		stack[head++] = current;

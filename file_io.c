@@ -1,5 +1,9 @@
 
-#include <sys\stat.h>
+#ifdef __unix__
+	#include <sys/stat.h>
+#elif defined(_WIN32) || defined(WIN32)
+	#include <sys\stat.h>
+#endif
 
 #include "file_io.h"
 
@@ -19,11 +23,13 @@ char fpath_separator() {
 /// Check if the given file exists.
 bool directory_exists (const char *fpath) {
     struct stat info;
-    return !stat(fpath, &info) && (info.st_mode & S_IFDIR);
+	return !stat(fpath, &info) && S_ISDIR(info.st_mode);
+//    return !stat(fpath, &info) && (info.st_mode & S_IFDIR);
 }
 
 /// Check if the given file exists.
 bool file_exists (const char *fpath) {
     struct stat info;
-    return !stat(fpath, &info) && (info.st_mode & S_IFREG);
+	return !stat(fpath, &info) && S_ISREG(info.st_mode);
+//    return !stat(fpath, &info) && (info.st_mode & S_IFREG);
 }

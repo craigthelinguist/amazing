@@ -2,8 +2,13 @@
 #ifndef IMAGELIB0_H
 #define IMAGELIB0_H
 
-#include <cjson\cJSON.h>
-#include <SDL2\SDL.h>
+#ifdef __unix__
+	#include <cjson/cJSON.h>
+	#include <SDL2/SDL.h>
+#elif defined(_WIN32) || defined(WIN32)
+	#include <cjson\cJSON.h>
+	#include <SDL2\SDL.h>
+#endif
 
 #include "image.h"
 #include "imagelib.h"

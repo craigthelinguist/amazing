@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <SDL_Image.h>
+#include <SDL_image.h>
 
 #include "file_io.h"
 #include "graphical_constants.h"

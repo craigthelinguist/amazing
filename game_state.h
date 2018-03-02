@@ -5,7 +5,7 @@
 
 #include "graph.h"
 #include "gui0.h"
-#include "Keymap.h"
+#include "keymap.h"
 
 typedef struct GameState *GameState;
 

@@ -1,16 +1,17 @@
-CC=gcc
 
-STD=-std=c11
 
-# Warning flags.
-WARNINGS= -Wall
-LINKING= -IC:/MinGW/include/SDL2 -LC:/MinGW/lib -lSDL2 -lSDL2_image -lpthread -lcjson
+SRC_FILES := main.c graph.c colours.c camera.c gui.c drawing.c game_state.c render.c keymap.c game_loop.c image.c imagelib.c sprite.c file_io.c
 
-SRC_MAIN=main.c graph.c colours.c camera.c gui.c drawing.c game_state.c render.c keymap.c game_loop.c image.c imagelib.c sprite.c file_io.c
+LIBS := -lSDL2 -lSDL2_image -lpthread -lcjson -lm
 
-# Compilation rules.
-amazing.exe:
-	$(CC) $(SRC_MAIN) $(STD) $(WARNINGS) $(FLAGS) $(LINKING) $^ -o $@
+FLAGS := -D__unix__
+
+HEADERS := -I/usr/include/SDL2
+
+amazing:
+	gcc $(SRC_FILES) $(FLAGS) -std=c11 $(LIBS) $(HEADERS) -o $@
 
 clean:
-	rm amazing.exe
+	rm -f amazing
+
+

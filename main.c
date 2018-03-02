@@ -25,7 +25,12 @@ int main(int argc, char* argv[]) {
 	}
 
 	// Set up SDL and the gui.
-	SDL_Init(SDL_INIT_VIDEO);
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        fprintf(stderr, "Could not initialise SDL. Error: %s\n", SDL_GetError());
+    } else {
+        fprintf(stderr, "Successfully initialised SDL.\n");
+    }
+
     GUI gui = make_gui(800, 600);
 	set_bgcol(gui, (Colour) { 120, 120, 120, 255 });
 
@@ -41,6 +46,8 @@ int main(int argc, char* argv[]) {
 
 	// Run the game.
 	run_game_loop(gui, game_state);
+
+    fprintf(stderr, "Finished.\n");
 	return 0;
 }
 
