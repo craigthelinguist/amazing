@@ -56,6 +56,7 @@ void load_image(GUI gui, char *image_name) {
 void update_game(GameState game_state, KeyStateMap key_state, long long update_time) {
 
     // Check direction player should move in.
+    // TODO: if e.g. left and right are both pressed down, then the most recently pressed takes precedence.
     int32_t dx = 0;
     int32_t dy = 0;
     if (key_state[SDL_SCANCODE_LEFT]) dx -= 1;
@@ -71,7 +72,7 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
     // Update player sprite's animation name.
     Sprite sprite = game_state->entities[PLAYER_ENTITY_INDEX].sprite;
 
-    // if LAST_DIRECTION_PRESSED is currently held down, that is where the sprite should face.
+    // If LAST_DIRECTION_PRESSED is currently held down, that is where the sprite should face.
     if (KEY_DOWN_MAP[LAST_DIRECTION_PRESSED]) {
         switch (LAST_DIRECTION_PRESSED) {
             case SDL_SCANCODE_LEFT:
@@ -104,7 +105,7 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
         }
     }
 
-    // If the player is standing still, reset their sprite. Otherwise animate the sprite.
+    // If the player is standing still, reset their animation. Otherwise animate the sprite.
     if (dx == 0 && dy == 0) {
         reset_animation(sprite);
     } else {
