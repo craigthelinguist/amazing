@@ -1,6 +1,6 @@
 
-#ifndef IMAGE_H
-#define IMAGE_H
+#ifndef IMAGE0_H
+#define IMAGE0_H
 
 #include <stdint.h>
 

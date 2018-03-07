@@ -18,8 +18,7 @@ bool is_box_colliding(CollisionMap cmap, SDL_Rect bounding_box) {
         || bounding_box.y < 0 || bounding_box.y + bounding_box.h >= cmap->width + MAP_TILE_SZ)
             return true;
 
-    // The sprite doesn't have to be the same size as the tiles on the cmap, so we iterate over those tiles touched by
-    // the bounding box and check if any are solid.
+    // The sprite unding box and check if any are solid.
     int start_x, start_y, end_x, end_y;
     start_x = bounding_box.x / MAP_TILE_SZ;
     start_y = bounding_box.y / MAP_TILE_SZ;

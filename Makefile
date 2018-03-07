@@ -1,6 +1,6 @@
 
 
-SRC_FILES := main.c graph.c colours.c camera.c gui.c drawing.c game_state.c render.c keymap.c game_loop.c image.c imagelib.c sprite.c file_io.c
+SRC_FILES := main.c graph.c colours.c camera.c gui.c drawing.c game_state.c render.c keymap.c game_loop.c image.c imagelib.c sprite.c file_io.c tile_map.c collision_map.c
 
 LIBS := -lSDL2 -lSDL2_image -lpthread -lcjson -lm
 

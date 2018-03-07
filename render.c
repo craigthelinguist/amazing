@@ -44,7 +44,7 @@ void draw_entities(GUI gui, GameState game_state) {
         int image_top_y = entity->ypos - MAX(IMAGE_HT - SPRITE_COLLISION_HT, 0);
 
         // The image to be drawn.
-        Image *image = entity->sprite->sprite_sheet;
+        image *image = entity->sprite->sprite_sheet;
 
         // The current frame of the current animation.
         struct Offset offset = get_current_frame(entity->sprite);

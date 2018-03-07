@@ -7,9 +7,9 @@
 #include "image.h"
 #include <SDL2/SDL.h>
 
-void draw_image(GUI gui, Camera camera, Image *image, int x, int y);
+void draw_image(GUI gui, Camera camera, image *image, int x, int y);
 
-void draw_image_offset(GUI gui, Camera camera, Image *image, int x, int y, int off_x, int off_y, int wd, int ht);
+void draw_image_offset(GUI gui, Camera camera, image *image, int x, int y, int off_x, int off_y, int wd, int ht);
 
 void clear_screen(GUI gui);
 

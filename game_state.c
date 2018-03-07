@@ -5,6 +5,7 @@
 
 #include "drawing.h"
 #include "game_state0.h"
+#include "gui0.h"
 #include "imagelib.h"
 #include "render.h"
 #include "sprite.h"
@@ -14,10 +15,10 @@
 
 static char *ASSET_DIRECTORY = "assets";
 
-Image *get_image(char *image_name) {
-    Image *image = imagelib_get(image_name);
+image *get_image(char *image_name) {
+    image *image = imagelib_get(image_name);
     if (!image) {
-        switch (IMAGE_LIB_ERR) {
+        switch (IMAGELIB_ERRCODE) {
             case NO_SUCH_IMAGE:
                 fprintf(stderr, "Could not find the image `%s` (did you load it?)", image_name);
                 exit(20);
@@ -31,24 +32,7 @@ Image *get_image(char *image_name) {
 
 void load_image(GUI gui, char *image_name) {
     if (!imagelib_load(image_name, gui->renderer)) {
-        switch (IMAGE_LIB_ERR) {
-            case DIRECTORY_NOT_FOUND:
-                fprintf(stderr, "Could not find directory %s", ASSET_DIRECTORY);
-                break;
-            case FILE_NOT_FOUND:
-                fprintf(stderr, "Could not find asset `%s`", image_name);
-                break;
-            case FILE_NAME_TOO_LONG:
-                fprintf(stderr, "`%s` is too long a file name.", image_name);
-                break;
-            case LIBRARY_FULL:
-                fprintf(stderr, "The image library is full.");
-                break;
-            default:
-                fprintf(stderr, "Unknown error %d", IMAGE_LIB_ERR);
-                break;
-        }
-        exit(20);
+        IMAGELIB_ERR("Failed loading %s\n", image_name);
     }
 }
 
@@ -117,9 +101,7 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
 void add_entity(GameState game_state, GUI gui, int32_t xpos, int32_t ypos, char *sprite_sheet_name) {
     Sprite sprite = load_sprite(sprite_sheet_name, gui->renderer);
     if (!sprite) {
-        fprintf(stderr, "Failed to load sprite %s\n", sprite_sheet_name);
-        // TODO: print the error message
-        exit(534);
+        IMAGELIB_ERR("Failed to load sprite `%s`", "bollocks");
     }
     Entity player_entity = (Entity) {xpos, ypos, sprite};
     game_state->entities[game_state->num_entities++] = player_entity;
@@ -151,6 +133,11 @@ void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_a
 
     // Create the player entity.
     add_entity(game_state, gui, start_pos_x, start_pos_y, "celes");
+
+    // Load the maze grid.
+    if (!imagelib_load("maze-grid", gui->renderer)) {
+
+    }
 
 }
 

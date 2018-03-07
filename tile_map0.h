@@ -10,12 +10,12 @@
 #include "tile_map.h"
 
 struct tile_map {
-    Image *tileset;
+    image *tileset;
     int16_t width;
     int16_t map[];
 };
 
-TileMap make_tile_map(int16_t width, Image *tileset) {
+TileMap make_tile_map(int16_t width, image *tileset) {
 
     // The tileset width/height should be a multiple of the tile size.
     if (!tileset || tileset->wd % MAP_TILE_SZ != 0 || tileset->ht % MAP_TILE_SZ != 0)

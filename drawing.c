@@ -10,7 +10,7 @@
 #include "gui.h"
 #include "point.h"
 
-void draw_image(GUI gui, Camera camera, struct Image *image, int x, int y) {
+void draw_image(GUI gui, Camera camera, image *image, int x, int y) {
 	Point_Int32 pt = offset_point(gui, camera, x, y);
 	SDL_Rect rect = {pt.x, pt.y, image->wd, image->ht};
 	SDL_RenderCopy(get_renderer(gui), image->texture, NULL, &rect);
@@ -23,7 +23,7 @@ void draw_image(GUI gui, Camera camera, struct Image *image, int x, int y) {
 	*/
 }
 
-void draw_image_offset(GUI gui, Camera camera, struct Image *image, int x, int y, int off_x, int off_y, int wd, int ht) {
+void draw_image_offset(GUI gui, Camera camera, image *image, int x, int y, int off_x, int off_y, int wd, int ht) {
 
 	// Select the part of the texture to be rendered.
 	SDL_Rect text_rect = {off_x, off_y, wd, ht};

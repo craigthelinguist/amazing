@@ -33,24 +33,35 @@ enum ImageLibErr {
 typedef enum ImageLibErr ImageLibErr;
 
 /// This is set whenever a library call fails.
-extern ImageLibErr IMAGE_LIB_ERR;
+extern ImageLibErr IMAGELIB_ERRCODE;
 
 /// Initialise the image library. Afterwards, you can load and retrieve up to `capacity` images from the specified
 /// directory. If you pass `NULL`, `imagelib` will look in the current directory for images. If the library fails to
-/// initialise, then `IMAGE_LIB_ERR` will be set to one of the following error values: DIRECTORY_NOT_FOUND.
+/// initialise, then `IMAGELIB_ERRCODE` will be set to one of the following error values: DIRECTORY_NOT_FOUND.
 bool imagelib_init(const char *asset_directory, const int capacity);
 
 /// Frees all images that have been loaded into the library, and the library itself.
 void imagelib_free();
 
 /// Get the image in the library with the given filename. If the image does not exist, `NULL` will be returned, and
-/// `IMAGE_LIB_ERR` will be set to one of the following error values: NO_SUCH_IMAGE.
-struct Image *imagelib_get(const char *fname);
+/// `IMAGELIB_ERRCODE` will be set to one of the following error values: NO_SUCH_IMAGE.
+struct image *imagelib_get(const char *fname);
 
 /// Load the image at the specified file name into the given renderer. If the image does not exist, `false` will be
-/// returned, and `IMAGE_LIB_ERR` will be set to one of the following error values: DIRECTORY_NOT_FOUND, FILE_NOT_FOUND,
+/// returned, and `IMAGELIB_ERRCODE` will be set to one of the following error values: DIRECTORY_NOT_FOUND, FILE_NOT_FOUND,
 /// FILE_NAME_TOO_LONG, or LIBRARY_FULL.
 bool imagelib_load(const char *fname, SDL_Renderer *renderer);
+
+/// Print an error message, and also the current imagelib error.
+#define IMAGELIB_ERR(...) do { \
+fprintf(stderr, __VA_ARGS__);\
+fprintf(stderr, ": ");\
+print_imagelib_errmsg();\
+exit(150);\
+} while (0);
+
+/// Print the current error message.
+void print_imagelib_errmsg(void);
 
 Sprite load_sprite(const char *fname, SDL_Renderer *renderer);
 

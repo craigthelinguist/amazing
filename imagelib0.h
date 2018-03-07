@@ -15,16 +15,16 @@
 #include "sprite0.h"
 
 /// Validate whether the given JSON object describes a sprite for the given sprite sheet. If the JSON object does not
-/// correctly describe a sprite, then `false` is returned, and IMAGE_LIB_ERR is set.
-bool json_is_sprite(cJSON *root, Image *sprite_sheet);
+/// correctly describe a sprite, then `false` is returned, and IMAGELIB_ERRCODE is set.
+bool json_is_sprite(cJSON *root, image *sprite_sheet);
 
 /// Create a new sprite from the given JSON object. No error-checking is done if the JSON object is invalid; you should
 /// call `json_is_sprite` to ensure that it is valid before calling this. A fresh Sprite is allocated, which the caller
 /// should free.
-Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet);
+Sprite sprite_from_json(cJSON *obj, image *sprite_sheet);
 
 /// Resolve the filename, turning it into an absolute filepath. This mallocs a string, which the caller must free. If
-/// the file does not exist, then `NULL` is returned, and `IMAGE_LIB_ERR` is set to one of the following:
+/// the file does not exist, then `NULL` is returned, and `IMAGELIB_ERRCODE` is set to one of the following:
 /// FILE_NAME_TOO_LONG, FILE_NOT_FOUND.
 char *resolve_fname(const char *fname);
 

@@ -16,8 +16,12 @@
 /// Maximum length of an asset name.
 #define STRING_SIZE 32
 
+#define ANIM_NAME_MAX_SIZE (STRING_SIZE-1)
+
+#define OFFSET_MAX_SIZE (pow(2, 16))
+
 struct Entry {
-	struct Image image;
+	struct image image;
 	char fname[STRING_SIZE];
 };
 
@@ -32,11 +36,11 @@ struct ImageLib {
 static struct ImageLib lib;
 
 /// The error code for when library calls go wrong.
-ImageLibErr IMAGE_LIB_ERR;
+ImageLibErr IMAGELIB_ERRCODE;
 
 bool imagelib_init(const char *asset_directory, const int maxSize) {
 	if (!directory_exists(asset_directory)) {
-		IMAGE_LIB_ERR = DIRECTORY_NOT_FOUND;
+		IMAGELIB_ERRCODE = DIRECTORY_NOT_FOUND;
 		return false;
 	}
 	lib.entries = calloc(sizeof(struct Entry), maxSize);
@@ -65,19 +69,19 @@ void imagelib_free() {
 bool imagelib_load_absolute(const char *fpath, const char *fname, SDL_Renderer *renderer) {
 
 	if (!file_exists(fpath)) {
-		IMAGE_LIB_ERR = FILE_NOT_FOUND;
+		IMAGELIB_ERRCODE = FILE_NOT_FOUND;
 		return false;
 	}
 
 	SDL_Surface *surface = IMG_Load(fpath);
 	if (surface == NULL) {
-		IMAGE_LIB_ERR = SDL_ERROR;
+		IMAGELIB_ERRCODE = SDL_ERROR;
 		return false;
 	}
 
 	SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
 	if (!texture) {
-		IMAGE_LIB_ERR = SDL_ERROR;
+		IMAGELIB_ERRCODE = SDL_ERROR;
 		free(surface);
 		return false;
 	}
@@ -106,14 +110,14 @@ bool imagelib_load(const char *fname, SDL_Renderer *renderer) {
 
 	// Check if there is space in the library.
 	if (lib.size == lib.capacity) {
-		IMAGE_LIB_ERR = LIBRARY_FULL;
+		IMAGELIB_ERRCODE = LIBRARY_FULL;
 		return false;
 	}
 
 	// Check if the name of the file isn't too long.
 	int file_name_len = strlen(fname);
 	if (file_name_len > STRING_SIZE - 1) {
-		IMAGE_LIB_ERR = FILE_NAME_TOO_LONG;
+		IMAGELIB_ERRCODE = FILE_NAME_TOO_LONG;
 		return false;
 	}
 
@@ -129,12 +133,12 @@ bool imagelib_load(const char *fname, SDL_Renderer *renderer) {
 
 }
 
-struct Image *imagelib_get(const char *fname) {
+struct image *imagelib_get(const char *fname) {
 	for (int i = 0; i < lib.size; i++) {
 		if (!strcmp(fname, lib.entries[i].fname))
 			return &(lib.entries[i].image);
 	}
-	IMAGE_LIB_ERR = NO_SUCH_IMAGE;
+	IMAGELIB_ERRCODE = NO_SUCH_IMAGE;
 	return NULL;
 }
 
@@ -147,14 +151,14 @@ char *fname_append(const char *string, const char *suffix) {
 }
 
 /// Resolve the filename, turning it into an absolute filepath. This mallocs a string, which the caller must free. If
-/// the file does not exist, then `NULL` is returned, and `IMAGE_LIB_ERR` is set to one of the following:
+/// the file does not exist, then `NULL` is returned, and `IMAGELIB_ERRCODE` is set to one of the following:
 /// FILE_NAME_TOO_LONG, FILE_NOT_FOUND.
 char *resolve_fname(const char *fname) {
 
     // Check the file name is not too long.
     int file_name_len = strlen(fname);
     if (file_name_len > STRING_SIZE - 1) {
-        IMAGE_LIB_ERR = FILE_NAME_TOO_LONG;
+        IMAGELIB_ERRCODE = FILE_NAME_TOO_LONG;
         return false;
     }
 
@@ -166,7 +170,7 @@ char *resolve_fname(const char *fname) {
 
     // Check the file path exists.
     if (!file_exists(fpath)) {
-        IMAGE_LIB_ERR = FILE_NOT_FOUND;
+        IMAGELIB_ERRCODE = FILE_NOT_FOUND;
         return false;
     }
 
@@ -179,17 +183,17 @@ char *resolve_fname(const char *fname) {
 /// ===================================================================================================================
 
 cJSON *load_json(const char *fpath);
-bool json_is_sprite(cJSON *root, Image *sprite_sheet);
-Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet);
+bool json_is_sprite(cJSON *root, image *sprite_sheet);
+Sprite sprite_from_json(cJSON *obj, image *sprite_sheet);
 
 /// Load a sprite with the given name. This will load the image into the library and return the data structure
-/// containing information about the animations for the sprite. On failure, `NULL` is returned, and IMAGE_LIB_ERR is set.
+/// containing information about the animations for the sprite. On failure, `NULL` is returned, and IMAGELIB_ERRCODE is set.
 Sprite load_sprite(const char *fname, SDL_Renderer *renderer) {
 
     // If the associated image hasn't been loaded, then load it.
     if (!imagelib_load(fname, renderer))
         return NULL;
-    Image *image = imagelib_get(fname);
+    image *image = imagelib_get(fname);
     if (!image) {
         return NULL;
     }
@@ -218,7 +222,7 @@ bool double_is_nat(double num) {
 cJSON *load_json_absolute(const char *fpath) {
 
 	if (!file_exists(fpath)) {
-		IMAGE_LIB_ERR = FILE_NOT_FOUND;
+		IMAGELIB_ERRCODE = FILE_NOT_FOUND;
 		return NULL;
 	}
 
@@ -251,18 +255,18 @@ cJSON *load_json(const char *fname) {
 
 
 /// Validate whether the given JSON object describes a sprite for the given sprite sheet. If the JSON object does not
-/// correctly describe a sprite, then `false` is returned, and IMAGE_LIB_ERR is set.
-bool json_is_sprite(cJSON *root, Image *sprite_sheet) {
+/// correctly describe a sprite, then `false` is returned, and IMAGELIB_ERRCODE is set.
+bool json_is_sprite(cJSON *root, image *sprite_sheet) {
 
 	// If the root is `NULL`, then we did not load syntactically valid JSON.
 	if (!root) {
-		IMAGE_LIB_ERR = BAD_JSON;
+		IMAGELIB_ERRCODE = BAD_JSON;
 		return false;
 	}
 
 	// The JSON must be an object.
 	if (!cJSON_IsObject(root)) {
-		IMAGE_LIB_ERR = SS_ROOT_NOT_OBJECT;
+		IMAGELIB_ERRCODE = SS_ROOT_NOT_OBJECT;
 		return false;
 	}
 
@@ -272,13 +276,13 @@ bool json_is_sprite(cJSON *root, Image *sprite_sheet) {
 
 		// Offsets must be specified in an array.
 		if (!cJSON_IsArray(array)) {
-			IMAGE_LIB_ERR = SS_MUST_SPECIFY_OFFSETS_IN_ARRAY;
+			IMAGELIB_ERRCODE = SS_MUST_SPECIFY_OFFSETS_IN_ARRAY;
 			return false;
 		}
 
 		// Animation name not allowed to be too long.
 		if (strlen(array->string) > MAX_ANIMATION_NAME_LEN - 1) {
-			IMAGE_LIB_ERR = NAME_TOO_LONG;
+			IMAGELIB_ERRCODE = NAME_TOO_LONG;
 			return false;
 		}
 
@@ -290,23 +294,23 @@ bool json_is_sprite(cJSON *root, Image *sprite_sheet) {
 
 			// Ensure the offset is a value.
 			if (!cJSON_IsNumber(offset) || !double_is_nat(offset->valuedouble)) {
-                IMAGE_LIB_ERR = OFFSETS_MUST_BE_NATURAL_NUMBERS;
+                IMAGELIB_ERRCODE = OFFSETS_MUST_BE_NATURAL_NUMBERS;
                 return false;
             }
 
             // Ensure the offset is on the image, and not too big.
             int offset_val = (int) floor(offset->valuedouble);
             if (num_offsets % 2 && offset_val + SPRITE_WD > sprite_sheet->wd) {
-                IMAGE_LIB_ERR = OFFSET_OUT_OF_BOUNDS;
+                IMAGELIB_ERRCODE = OFFSET_OUT_OF_BOUNDS;
                 return false;
             } else if (offset_val + SPRITE_HT > sprite_sheet->ht) {
-                IMAGE_LIB_ERR = OFFSET_OUT_OF_BOUNDS;
+                IMAGELIB_ERRCODE = OFFSET_OUT_OF_BOUNDS;
                 return false;
             }
 
             // Error if the offset's too big (to prevent overflows).
             if (offset->valuedouble > pow(2, 16)) {
-                IMAGE_LIB_ERR = OFFSET_TOO_BIG;
+                IMAGELIB_ERRCODE = OFFSET_TOO_BIG;
                 return false;
             }
 
@@ -314,7 +318,7 @@ bool json_is_sprite(cJSON *root, Image *sprite_sheet) {
 
         // There must be an even number of offsets (2 per frame).
         if (num_offsets % 2 != 0) {
-            IMAGE_LIB_ERR = WRONG_NUMBER_OF_OFFSETS;
+            IMAGELIB_ERRCODE = WRONG_NUMBER_OF_OFFSETS;
             return false;
         }
 
@@ -330,7 +334,7 @@ bool json_is_sprite(cJSON *root, Image *sprite_sheet) {
 /// Create, initialise, and return a new sprite from the given sprite sheet and JSON object. No error-checking is done if the
 /// JSON object is invalid; you should call `json_is_sprite` to ensure that it is valid before calling this. A fresh Sprite is
 /// allocated, which must be freed by the caller.
-Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet) {
+Sprite sprite_from_json(cJSON *obj, image *sprite_sheet) {
 
     // Figure out how many animations in the sprite, and how many frames in all the animations.
     int num_animations = cJSON_GetArraySize(obj);
@@ -388,9 +392,49 @@ Sprite sprite_from_json(cJSON *obj, Image *sprite_sheet) {
 
 }
 
-
-
-
-
-
-
+void print_imagelib_errmsg(void) {
+	switch (IMAGELIB_ERRCODE) {
+		case BAD_JSON:
+			fprintf(stderr, "Attempted to load a sprite sheet with malformed JSON.\n");
+			break;
+		case DIRECTORY_NOT_FOUND:
+			fprintf(stderr, "Could not find asset directory.\n");
+			break;
+		case FILE_NOT_FOUND:
+			fprintf(stderr, "Could not find asset.\n");
+			break;
+		case FILE_NAME_TOO_LONG:
+			fprintf(stderr, "File name for asset was too long.\n");
+			break;
+		case LIBRARY_FULL:
+			fprintf(stderr, "The image library is full.\n");
+			break;
+		case SDL_ERROR:
+			fprintf(stderr, "SDL_Error: %s\n", SDL_GetError());
+			break;
+		case SS_ROOT_NOT_OBJECT:
+			fprintf(stderr, "Sprite sheet does not contain a JSON object.\n");
+			break;
+		case SS_MUST_SPECIFY_OFFSETS_IN_ARRAY:
+			fprintf(stderr, "Offsets for animation name must be specified in an array.\n");
+			break;
+		case OFFSETS_MUST_BE_NATURAL_NUMBERS:
+			fprintf(stderr, "An offset for an animation name was a negative number.\n");
+			break;
+		case OFFSET_OUT_OF_BOUNDS:
+			fprintf(stderr, "An offset for an animation name is not located on the image.\n");
+			break;
+		case WRONG_NUMBER_OF_OFFSETS:
+			fprintf(stderr, "An animation name has an odd number of offsets.\n");
+			break;
+		case NAME_TOO_LONG:
+			fprintf(stderr, "An animation name is too long. Max size is %d\n", ANIM_NAME_MAX_SIZE);
+			break;
+		case OFFSET_TOO_BIG:
+			fprintf(stderr, "An offset is too big to support. Max offset size is %d\n", OFFSET_TOO_BIG);
+			break;
+		default:
+			fprintf(stderr, "Unknown error %d\n", IMAGELIB_ERRCODE);
+			break;
+	}
+}

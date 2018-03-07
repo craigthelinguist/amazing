@@ -24,7 +24,7 @@ struct Animation {
 /// A sprite is a fixed collection of animations stored on a sprite sheet. At any given time, a sprite is only
 /// performing one particular animation, which is `current_animation`.
 struct Sprite {
-    Image *sprite_sheet;
+    image *sprite_sheet;
     int8_t num_animations;
     struct Animation *current_animation;
     int8_t current_frame;
