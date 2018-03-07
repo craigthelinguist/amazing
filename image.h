@@ -15,9 +15,15 @@ struct image {
 	SDL_Texture *texture;
 };
 
+/** This is a grid of images, stored in a single file. */
 struct image_sheet {
+
+    // The actual file, containing the images.
 	image img;
+
+    // The size of each image.
 	uint16_t img_size;
+
 };
 
 SDL_Rect extract_img(image_sheet *sheet, int index);

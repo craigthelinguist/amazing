@@ -4,47 +4,49 @@
 
 #include "graphical_constants.h"
 #include "image.h"
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "tile_map.h"
 
-struct tile_map {
-    image *tileset;
-    int16_t width;
-    int16_t map[];
+typedef struct map_data map_data;
+
+typedef enum tileset_index tileset_index;
+
+enum tileset_index {
+    Up, Right, Down, Left,
+    UpRight, RightDown, DownLeft, LeftUp, UpDown, LeftRight,
+    UpRightDown, RightDownLeft, DownLeftUp, LeftUpRight,
+    UpRightDownLeft
 };
 
-TileMap make_tile_map(int16_t width, image *tileset) {
+struct map_data {
 
-    // The tileset width/height should be a multiple of the tile size.
-    if (!tileset || tileset->wd % MAP_TILE_SZ != 0 || tileset->ht % MAP_TILE_SZ != 0)
-        return NULL;
+    // The prefabbed blocks of the maze that fit together.
+    image_sheet tile_set;
 
-    struct tile_map *tm = malloc(sizeof(struct tile_map) + sizeof(int16_t) * width * width);
-    tm->width = width;
-    memset(tm->map, -1, width * width);
-    tm->tileset = tileset;
-    return tm;
-}
+    // The width (and height) of the tile map. Will be the number of prefab blocks that fit into the map.
+    int16_t tile_map_wd;
 
-void set_tile(struct tile_map *tm, int16_t x, int16_t y, int16_t tile_index) {
+    // The width (and height) of the wall map. Will be the same as the graphical constant.
+    int16_t wall_map_wd;
 
-    // Check the tile_index is in bounds.
-    const int NUM_TILES = (tm->tileset->ht / MAP_TILE_SZ) * (tm->tileset->wd / MAP_TILE_SZ);
-    if (tile_index < 0 || tile_index >= NUM_TILES) {
-        fprintf(stderr, "Setting tile image which is out of bounds (index %d)\n", tile_index);
-        exit(1350);
-    }
+    // An array containing (successively) the data about the tiles on the map, and the collision map for them.
+    // An entry in the map_data is an index, referencing an image stored on the image_sheet above.
+    // An entry in the wall_map is true iff it is a wall iff it is NOT walkable
+    char *data;
 
-    // Check the map position is in bounds.
-    if (x < 0 || y < 0 || x >= tm->width || y >= tm->width) {
-        fprintf(stderr, "Setting tile which is not located on the map (%d, %d)\n", x, y);
-        exit(1351);
-    }
+};
 
-    tm->map[y * tm->width + x] = tile_index;
+tileset_index *get_map_data(map_data *map);
 
-}
+bool *get_wall_map(map_data *map);
+
+map_data *make_map_data(int maze_width, image_sheet prefabs, image *walls);
+
+bool is_tile_walkable(map_data *map, int16_t row, int16_t col);
+
+bool is_box_colliding(map_data *map, SDL_Rect box);
 
 #endif

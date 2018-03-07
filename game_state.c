@@ -136,7 +136,7 @@ void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_a
 
     // Load the maze grid.
     if (!imagelib_load("maze-grid", gui->renderer)) {
-
+        IMAGELIB_ERR("Could not load the maze grid");
     }
 
 }
