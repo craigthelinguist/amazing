@@ -1,5 +1,5 @@
 
-#include "graph.h"
+#include "graph0.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -10,33 +10,18 @@ void terminate(const char *err_msg) {
 	exit(1);
 }
 
-struct Graph {
+int16_t graph_width(graph *g) { return g->width; }
 
-    /* Can be at most 256. A maze is always a square. */
-    int16_t width;
-
-    /* Start of the maze. */
-    POINT startPos;
-
-    /* You win if you get here. */
-	POINT exitPos;
-
-    /* 2d array of neighbours. nmap[i] is a bitpacked list of neighbours for tile i. */
-	int16_t nmap[];
-};
-
-int16_t graph_width(struct Graph *g) { return g->width; }
-
-int16_t graph_has_tile_at(struct Graph *g, int16_t xpos, int16_t ypos) {
+int16_t graph_has_tile_at(graph *g, int16_t xpos, int16_t ypos) {
 	return g->nmap[xpos * graph_width(g) + ypos];
 }
 
-POINT graph_start_pos(struct Graph *g) { return g->startPos; }
-POINT graph_exit_pos (struct Graph *g) { return g->exitPos;  }
+POINT graph_start_pos(graph *g) { return g->start_pos; }
+POINT graph_exit_pos (graph *g) { return g->exit_pos;  }
 
-int16_t graph_pos_is_entry_or_exit(struct Graph *g, int16_t xpos, int16_t ypos) {
-	return (g->startPos.x = xpos && g->startPos.y == ypos)
-		|| (g->exitPos.x = xpos && g->exitPos.y == ypos);
+int16_t graph_pos_is_entry_or_exit(graph *g, int16_t xpos, int16_t ypos) {
+	return (g->start_pos.x = xpos && g->start_pos.y == ypos)
+		|| (g->exit_pos.x = xpos && g->exit_pos.y == ypos);
 }
 
 POINT make_point(int16_t x, int16_t y) {
@@ -55,10 +40,10 @@ enum Direction opposite_direction(enum Direction dir) {
 	}
 }
 
-void generate_maze(struct Graph *g);
+void generate_maze(graph *g);
 
-struct Graph *graph_make(int16_t width, MazeAlgo generation_algorithm) {
-	struct Graph *g = malloc(sizeof(struct Graph) + sizeof(int16_t) * width * width);
+graph *graph_make(int16_t width, MazeAlgo generation_algorithm) {
+	graph *g = malloc(sizeof(graph) + sizeof(int16_t) * width * width);
 	g->width = width;
 	
 	// Initialise the neighbour map.
@@ -80,7 +65,7 @@ struct Graph *graph_make(int16_t width, MazeAlgo generation_algorithm) {
 	return g;
 }
 
-void graph_free(struct Graph *graph) {
+void graph_free(graph *graph) {
 	free(graph);
 
 }
@@ -108,7 +93,7 @@ int in_bounds(GRAPH g, POINT p) {
 	return p.x >= 0 && p.y >= 0 && p.x < g->width && p.y < g->width;
 }
 
-void check_point_in_bounds(struct Graph *g, POINT p) {
+void check_point_in_bounds(graph *g, POINT p) {
 	if (!in_bounds(g, p)) {
 		fprintf(stderr, "SNAP: Point (%d, %d) is out of bounds.\n", p.x, p.y);
 		exit(1);
@@ -119,7 +104,7 @@ void check_point_in_bounds(struct Graph *g, POINT p) {
  * Connects an edge in a graph. NB: don't rename this to `connect`, as it seems to clash with something in the latest
  * SDL2 libraries.
  */
-void connect_edge(struct Graph *g, POINT p, enum Direction dir) {
+void connect_edge(graph *g, POINT p, enum Direction dir) {
 	check_point_in_bounds(g, p);
 	g->nmap[p.x * g->width + p.y] |= (1 << dir);
 	p = point_after_moving(p, dir);
@@ -131,16 +116,16 @@ int16_t is_connected(TILE nmap, enum Direction dir) {
 	return !!(nmap & (1 << dir));
 }
 
-int16_t is_connected2(struct Graph *g, POINT p, enum Direction dir) {
+int16_t is_connected2(graph *g, POINT p, enum Direction dir) {
 	TILE t = graph_has_tile_at(g, p.x, p.y);
 	return !!(t & (1 << dir));
 }
 
-int has_been_visited(struct Graph *g, char *visited, POINT p) {
+int has_been_visited(graph *g, char *visited, POINT p) {
 	return visited[g->width * p.x + p.y];
 }
 
-int all_neighbours_visited(struct Graph *g, char *visited, POINT p) {
+int all_neighbours_visited(graph *g, char *visited, POINT p) {
 	for (DIRECTION dir = 0; dir < 4; dir++) {
 		POINT p2 = point_after_moving(p, dir);
 		if (in_bounds(g, p2) && !has_been_visited(g, visited, p2))
@@ -149,7 +134,7 @@ int all_neighbours_visited(struct Graph *g, char *visited, POINT p) {
 	return 1;
 }
 
-void mark_as_visited(struct Graph *g, char *visited, POINT p) {
+void mark_as_visited(graph *g, char *visited, POINT p) {
 	visited[g->width * p.x + p.y] = 1;
 }
 
@@ -169,51 +154,51 @@ DIRECTION random_unvisited_neighbour(GRAPH g, char *visited, POINT p) {
 	return dir;
 }
 
-void generate_maze(struct Graph *graph) {
+void generate_maze(graph *graph) {
 
-	// Some basic set up.
-	const int16_t WIDTH = graph->width;
-	const int32_t NUM_CELLS = WIDTH * WIDTH;
-	
-	// Get a random starting position.
-	srand(time(NULL));
-	graph->startPos = make_point(rand() % WIDTH, rand() % WIDTH);
-	
-	// Use an array as a bitset to keep track of which cells have been visited.
-	char visited[NUM_CELLS];
-	for (int i = 0; i < NUM_CELLS; i++) visited[i] = 0;
-	
-	// Use an array as a stack, to keep track of which nodes are to be visited next.
-	POINT stack[NUM_CELLS];
-	int32_t head = 0;
-	stack[head++] = graph->startPos;
-	POINT current;
-	POINT last_node_visited;
+    // Some basic set up.
+    const int16_t WIDTH = graph->width;
+    const int32_t NUM_CELLS = WIDTH * WIDTH;
 
-	while (head != 0) {
-		
-		// Pop next node off the stack and mark it as visited. If it hasn't been
-		// visited before, update last_node_visited.
-		current = stack[head-1];
-		head--;
-		if (!has_been_visited(graph, visited, current)) {
-			mark_as_visited(graph, visited, current);
-			last_node_visited = current;
-		}
-		
-		// If every neighbour has been visited, we're done processing this node.
-		if (all_neighbours_visited(graph, visited, current))
-			continue;
-		
-		// Pick a random neighbour and connect it to the current node.
-		DIRECTION neighbour_dir = random_unvisited_neighbour(graph, visited, current);
-		connect_edge(graph, current, neighbour_dir);
-		
-		// Put current node back onto the stack, followed by the neighbour.
-		stack[head++] = current;
-		stack[head++] = point_after_moving(current, neighbour_dir);
-		
-	}
-	
-	graph->exitPos = last_node_visited;
+    // Get a random starting position.
+    srand(time(NULL));
+    graph->start_pos = make_point(rand() % WIDTH, rand() % WIDTH);
+
+    // Use an array as a bitset to keep track of which cells have been visited.
+    char visited[NUM_CELLS];
+    for (int i = 0; i < NUM_CELLS; i++) visited[i] = 0;
+
+    // Use an array as a stack, to keep track of which nodes are to be visited next.
+    POINT stack[NUM_CELLS];
+    int32_t head = 0;
+    stack[head++] = graph->start_pos;
+    POINT current;
+    POINT last_node_visited;
+
+    while (head != 0) {
+
+        // Pop next node off the stack and mark it as visited. If it hasn't been
+        // visited before, update last_node_visited.
+        current = stack[head - 1];
+        head--;
+        if (!has_been_visited(graph, visited, current)) {
+            mark_as_visited(graph, visited, current);
+            last_node_visited = current;
+        }
+
+        // If every neighbour has been visited, we're done processing this node.
+        if (all_neighbours_visited(graph, visited, current))
+            continue;
+
+        // Pick a random neighbour and connect it to the current node.
+        DIRECTION neighbour_dir = random_unvisited_neighbour(graph, visited, current);
+        connect_edge(graph, current, neighbour_dir);
+
+        // Put current node back onto the stack, followed by the neighbour.
+        stack[head++] = current;
+        stack[head++] = point_after_moving(current, neighbour_dir);
+
+    }
+
+    graph->exit_pos = last_node_visited;
 }

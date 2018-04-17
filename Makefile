@@ -14,4 +14,6 @@ amazing:
 clean:
 	rm -f amazing
 
+example:
+	gcc example.c image.c imagelib.c file_io.c -lSDL2 -lSDL2_image -lcjson -lm -std=c11 -D__unix__ -I/usr/include/SDL2 -o $@
 

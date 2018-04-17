@@ -13,3 +13,10 @@ SDL_Rect extract_img_rowcol(image_sheet *sheet, int row, int col) {
     int y = row * sheet->img_size;
     return (SDL_Rect) { x, y, sheet->img_size, sheet->img_size };
 }
+
+image_sheet make_image_sheet(image image, uint16_t img_size) {
+    image_sheet sheet;
+    sheet.img = image;
+    sheet.img_size = img_size;
+    return sheet;
+}

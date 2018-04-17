@@ -2,6 +2,7 @@
 #ifndef TILE_MAP0_H
 #define TILE_MAP0_H
 
+#include "graph0.h"
 #include "graphical_constants.h"
 #include "image.h"
 #include <stdbool.h>
@@ -12,14 +13,7 @@
 
 typedef struct map_data map_data;
 
-typedef enum tileset_index tileset_index;
-
-enum tileset_index {
-    Up, Right, Down, Left,
-    UpRight, RightDown, DownLeft, LeftUp, UpDown, LeftRight,
-    UpRightDown, RightDownLeft, DownLeftUp, LeftUpRight,
-    UpRightDownLeft
-};
+typedef TILE tileset_index;
 
 struct map_data {
 
@@ -39,14 +33,16 @@ struct map_data {
 
 };
 
-tileset_index *get_map_data(map_data *map);
+tileset_index *get_tile_map(map_data *map);
 
 bool *get_wall_map(map_data *map);
 
-map_data *make_map_data(int maze_width, image_sheet prefabs, image *walls);
+map_data *make_map_data(int maze_width, image_sheet prefabs);
 
 bool is_tile_walkable(map_data *map, int16_t row, int16_t col);
 
 bool is_box_colliding(map_data *map, SDL_Rect box);
+
+map_data *generate_map_data(graph *graph, image_sheet tile_set);
 
 #endif

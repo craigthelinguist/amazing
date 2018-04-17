@@ -8,7 +8,8 @@ enum MazeAlgo { DFS_WITH_BACKTRACKING };
 
 typedef enum MazeAlgo MazeAlgo;
 
-typedef struct Graph *GRAPH;
+typedef struct graph *GRAPH;
+
 typedef int16_t TILE;
 
 struct Point {
@@ -35,7 +36,7 @@ int16_t graph_pos_is_entry_or_exit(GRAPH g, int16_t xpos, int16_t ypos);
 GRAPH graph_make(int16_t width, MazeAlgo generation_algorithm);
 
 /* Frees a graph created using `graph_make`. */
-void graph_free(struct Graph *graph);
+void graph_free(struct graph *graph);
 
 /* Query some attributes of the graph. */
 TILE graph_width(GRAPH g);
@@ -48,9 +49,5 @@ int in_bounds(GRAPH g, POINT p);
 
 /* Check whether a tile is connected in the given direction. */
 int16_t is_connected(TILE nmap, enum Direction dir);
-
-
-
-
 
 #endif

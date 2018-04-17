@@ -57,6 +57,7 @@ bool imagelib_init(const char *asset_directory, const int maxSize) {
 }
 
 void imagelib_free() {
+	// TODO: this segfaults for some reason.
 	for (int i = 0; i < lib.capacity || lib.entries + i != NULL; i++) {
 		SDL_DestroyTexture(lib.entries[i].image.texture);
 	}

@@ -1,8 +1,9 @@
 
+#include "graph0.h"
 #include "tile_map0.h"
 
 tileset_index *get_tile_map(map_data *map) {
-    return (tileset_index *) map->data;
+    return (tileset_index *) &map->data;
 }
 
 bool *get_wall_map(map_data *map) {
@@ -12,7 +13,7 @@ bool *get_wall_map(map_data *map) {
     return (bool *) tile_map;
 }
 
-map_data *make_map_data(int maze_width, image_sheet prefabs, image *walls) {
+map_data *make_map_data(int maze_width, image_sheet prefabs) {
 
     // Do a bunch of sanity checks.
     if (prefabs.img_size != PREFAB_WIDTH) {
@@ -32,21 +33,24 @@ map_data *make_map_data(int maze_width, image_sheet prefabs, image *walls) {
         exit(123520);
     }
 
-    if (!walls || walls->wd % MAP_TILE_SZ != 0 || walls->ht % MAP_TILE_SZ != 0) {
-        fprintf(stderr, "make_map_data: size of wall map not a multiple of size of tile.");
-        exit(123521);
-    }
-
     if (maze_width <= 0) {
         fprintf(stderr, "make_map_data: width of wall map must be > 0");
         exit(123522);
     }
 
-    // Figure out how much space to allocate.
+    fprintf(stderr, "Successfully done sanity checks.\n");
+
+    // Figure out how many entries in the tile_map and the wall_map.
     const int TILES_PER_PREFAB_BLOCK = (PREFAB_WIDTH / MAP_TILE_SZ) * (PREFAB_WIDTH / MAP_TILE_SZ);
     const int TILE_MAP_SIZE = (maze_width * maze_width) * sizeof(tileset_index);
     const int WALL_MAP_SIZE = (TILES_PER_PREFAB_BLOCK * maze_width * maze_width) * sizeof(bool);
-    const int MALLOC_SIZE = sizeof(map_data) + TILE_MAP_SIZE + WALL_MAP_SIZE;
+
+    // Based on that, compute the size of the tile_Map and the wall_map and how much memory to allocate.
+    const int TILE_MAP_DATA_SIZE = TILE_MAP_SIZE * sizeof(tileset_index);
+    const int WALL_MAP_DATA_SIZE = WALL_MAP_SIZE * sizeof(bool);
+    const int MALLOC_SIZE = sizeof(map_data) + TILE_MAP_DATA_SIZE + WALL_MAP_DATA_SIZE;
+
+    // Allocate memory for the map.
     map_data *map = malloc(MALLOC_SIZE);
     if (!map) {
         fprintf(stderr, "make_map_data: failed to malloc.");
@@ -57,9 +61,8 @@ map_data *make_map_data(int maze_width, image_sheet prefabs, image *walls) {
     map->tile_set = prefabs;
     map->tile_map_wd = TILE_MAP_SIZE;
     map->wall_map_wd = WALL_MAP_SIZE;
-    memset(map->data, 0, TILE_MAP_SIZE * sizeof(tileset_index) + WALL_MAP_SIZE * sizeof(bool));
+    memset(&map->data, 0, TILE_MAP_DATA_SIZE + WALL_MAP_DATA_SIZE);
     return map;
-
 }
 
 /*
@@ -114,5 +117,43 @@ bool is_box_colliding(map_data *map, SDL_Rect box) {
         }
     }
     return true;
+
+}
+
+map_data *generate_map_data(graph *graph, image_sheet tile_set) {
+
+
+    map_data *map = make_map_data(graph->width, tile_set);
+    tileset_index *tile_map = get_tile_map(map);
+    bool *wall_map = get_wall_map(map);
+
+    for (int row = 0; row < graph->width; row++) {
+        for (int col = 0; col < graph->width; col++) {
+            TILE tile = graph->nmap[row * graph->width + col];
+            int index = row * graph->width + col;
+            printf("trying to access entry at index %d, which is at position %d\n",
+                   index,
+                   tile_map + index);
+
+            // Set the tile map.
+            tile_map[row * graph->width + col] = tile;
+
+            // Set the collision map. This is a bit harder. We have to figure out which prefab we're looking at, then
+            // copy across the tiles from the collision map. To figure that out, we need to check the colour values of
+            // tiles on the prefab wall_map image.
+            const int TILES_PER_PREFAB = PREFAB_WIDTH / MAP_TILE_SZ;
+            int row2 = TILES_PER_PREFAB * row;
+            int col2 = TILES_PER_PREFAB * col;
+
+            for (int r = row2; r < PREFAB_WIDTH; r++) {
+                for (int c = col2; c < PREFAB_WIDTH; c++) {
+                    // wall_map[row2 * map->wall_map_wd + col2] =
+                }
+            }
+
+        }
+    }
+
+    return map;
 
 }

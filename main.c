@@ -9,7 +9,7 @@
 #include "drawing.h"
 #include "game_loop.h"
 #include "game_state.h"
-#include "graph.h"
+#include "graph0.h"
 #include "gui0.h"
 #include "image.h"
 #include "imagelib.h"
@@ -50,8 +50,3 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "Finished.\n");
 	return 0;
 }
-
-
-
-
-

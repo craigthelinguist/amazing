@@ -9,6 +9,7 @@
 #include "imagelib.h"
 #include "render.h"
 #include "sprite.h"
+#include "tile_map0.h"
 
 // The index containing the player.
 #define PLAYER_ENTITY_INDEX 0
@@ -127,18 +128,23 @@ void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_a
     game_state->camera = make_camera(0, 0);
 
     // This is the starting position of the player.
-    POINT startPos = graph_start_pos(game_state->graph);
+    POINT start_pos = graph_start_pos(game_state->graph);
     int start_pos_x = TILE_WIDTH/2 - COLLISION_SIZE/2;
     int start_pos_y = TILE_HEIGHT/2 - COLLISION_SIZE/2;
 
     // Create the player entity.
     add_entity(game_state, gui, start_pos_x, start_pos_y, "celes");
 
-    // Load the maze grid.
+    // Load the maze grid and its pathing map.
     if (!imagelib_load("maze-grid", gui->renderer)) {
         IMAGELIB_ERR("Could not load the maze grid");
     }
+    if (!imagelib_load("maze-grid-pathing", gui->renderer)) {
+        IMAGELIB_ERR("Could not load the maze grid pathing.");
+    }
+
+    image_sheet tile_set = make_image_sheet(*imagelib_get("maze-grid"), PREFAB_WIDTH);
+
+    map_data *map = generate_map_data(game_state->graph, tile_set);
 
 }
-
-
