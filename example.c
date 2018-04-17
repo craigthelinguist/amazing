@@ -8,6 +8,9 @@
 #include "stdlib.h"
 #include <SDL2/SDL.h>
 
+#include <SDL_image.h>
+
+
 struct colour {
     int red;
     int green;
@@ -15,12 +18,24 @@ struct colour {
     int alpha;
 };
 
-void pixel_at(struct image *img, SDL_Renderer *renderer, uint16_t x, uint16_t y) {
+Uint32 pixel_at(SDL_Surface *surface, SDL_Renderer *renderer, int x, int y) {
 
-    if (x > img->wd || y > img->ht) {
-        fprintf(stderr, "Accessing pixel not on the image.");
-        exit(12409);
+    if (x < 0 || y < 0 || x >= surface->w || y >= surface->h) {
+        fprintf(stderr, "Accessing pixel that is out of bounds.");
+        exit(12048);
     }
+
+    if (SDL_MUSTLOCK(surface))
+        SDL_LockSurface(surface);
+
+    Uint32 *pixels = (Uint32 *)surface->pixels;
+
+    Uint8 r, g, b;
+
+    SDL_GetRGB(pixels[100], surface->format, &r, &g, &b);
+
+    if (SDL_MUSTLOCK(surface))
+        SDL_UnlockSurface(surface);
 
 }
 
@@ -50,25 +65,13 @@ int main(int argc, char *argv[]) {
     const char *ASSET_DIRECTORY = "assets";
     const char *FNAME = "celes-down";
 
-    if (!imagelib_init(ASSET_DIRECTORY, 10)) {
-        fprintf(stderr, "Failed to load image library.");
-        print_imagelib_errmsg();
-        exit(12349084);
+    SDL_Surface *surface = IMG_Load("assets/maze-grid-pathing.png");
+    if (surface == NULL) {
+        IMAGELIB_ERRCODE = SDL_ERROR;
+        return false;
     }
 
-    if (!imagelib_load(FNAME, renderer)) {
-        fprintf(stderr, "Failed to load image %s\n", FNAME);
-        print_imagelib_errmsg();
-        exit(2340923409);
-    }
-
-    struct image *image = imagelib_get(FNAME);
-    if (!image) {
-        fprintf(stderr, "ERror, image is null after loading.\n");
-        exit(23409234);
-    }
-
-    pixel_at(image, renderer, 0, 0);
+    pixel_at(surface, renderer, 0, 0);
 
     SDL_Delay(1000);
 
