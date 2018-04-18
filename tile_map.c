@@ -126,7 +126,7 @@ bool is_box_colliding(map_data *map, SDL_Rect box) {
 
 map_data *generate_map_data(graph *graph, image_sheet tile_set) {
 
-    // Get the tile maps.
+    // Get the tile maps and some other parameters.
     map_data *map = make_map_data(graph->width, tile_set);
     tileset_index *tile_map = get_tile_map(map);
     bool *wall_map = get_wall_map(map);
@@ -138,7 +138,7 @@ map_data *generate_map_data(graph *graph, image_sheet tile_set) {
         exit(104821);
     }
 
-    // Load the actual prefab.
+    // Load the actual prefab and lock its SDL_Surface.
     SDL_Surface *prefab = IMG_Load(PREFAB_FPATH);
     if (!prefab) {
         fprintf(stderr, "Failed to load prefab collision map. SDL Error: %s\n", SDL_GetError());
@@ -146,42 +146,77 @@ map_data *generate_map_data(graph *graph, image_sheet tile_set) {
         exit(2354802935);
     }
 
-    // TODO: Now fill up the tile_map and wall_map using info from the graph and the RGB values
-    // TODO: on the prefab image.
+    if (SDL_MUSTLOCK(prefab))
+        SDL_LockSurface(prefab);
 
-    /*
+    // TODO: the bottom loop is incomplete and segfaults at the moment, but the code works (and does nothing) without it
+
     for (int row = 0; row < graph->width; row++) {
         for (int col = 0; col < graph->width; col++) {
-            TILE tile = graph->nmap[row * graph->width + col];
-            int index = row * graph->width + col;
-            printf("trying to access entry at index %d, which is at position %d\n",
-                   index,
-                   tile_map + index);
 
-            // Set the tile map.
-            tile_map[row * graph->width + col] = tile;
+            /* Set the tile_map. We have to figure out which index on the prefab is going to go at this entry in the
+             * tile_map. The prefabs are indexed so they correspond directly to the way a node is represented as a
+             * binary string in a graph. */
 
-            // Set the collision map. This is a bit harder. We have to figure out which prefab we're looking at, then
-            // copy across the tiles from the collision map. To figure that out, we need to check the colour values of
-            // tiles on the prefab wall_map image.
-            const int TILES_PER_PREFAB = PREFAB_WIDTH / MAP_TILE_SZ;
-            int row2 = TILES_PER_PREFAB * row;
-            int col2 = TILES_PER_PREFAB * col;
+            const int TILE_INDEX = row * graph->width + col;
+            tileset_index prefab_index = graph->nmap[TILE_INDEX];
+            tile_map[TILE_INDEX] = prefab_index;
 
-            for (int r = row2; r < PREFAB_WIDTH; r++) {
-                for (int c = col2; c < PREFAB_WIDTH; c++) {
-                    // wall_map[row2 * map->wall_map_wd + col2] =
+            /*
+             * Set the collision map. This is harder. First, a single entry in tile_map corresponds to a square of
+             * entries in wall_map, so we have to fill out a subarray in wall_map per iteration. To know what to put at
+             * each position, we look at the corresponding position on the appropriate tile in the prefab above (the
+             * one at `prefab_index`). The RGB values at those positions will determine whether the tiles are walkable.
+             */
+
+            // The (row, col) in the wall_map where we begin iteration.
+            const int TILES_PER_PREFAB = (PREFAB_WIDTH / MAP_TILE_SZ) * (PREFAB_WIDTH / MAP_TILE_SZ);
+            int pf_row0 = TILES_PER_PREFAB * row;
+            int pf_col0 = TILES_PER_PREFAB * col;
+
+            // The top-left (x, y) on the prefab image of the tile corresponding to the (row, col) above.
+            // TODO: we need to extract the (row, col) from prefab_index
+            // TODO: then turn the (row, col) into the pixel position (x, y)
+            int pf_pixel_x0= 0;
+            int pf_pixel_y0 = 0;
+
+            // Iterate over the tiles inside the prefab tile.
+            for (int pf_row = pf_row0; pf_row < pf_row0 + TILES_PER_PREFAB; pf_row++) {
+                for (int pf_col = pf_col0; pf_col < pf_col0 + TILES_PER_PREFAB; pf_col++) {
+
+                    // Figure out the position on the collision map image for the current wall_map index.
+                    int pf_pixel_x_offset = (pf_col - pf_col0) * MAP_TILE_SZ;
+                    int pf_pixel_y_offset = (pf_row - pf_row0) * MAP_TILE_SZ;
+                    int pf_pixel_x = pf_pixel_x0 + pf_pixel_x_offset + 1;
+                    int pf_pixel_y = pf_pixel_y0 + pf_pixel_y_offset + 1;
+                    int pixel_index = pf_pixel_y * prefab->w + pf_pixel_x;
+
+                    // Now get the actual RGB values for that pixel.
+                    Uint32 *pixels = (Uint32 *)prefab->pixels;
+                    Uint8 red, green, blue;
+                    SDL_GetRGB(pixels[pixel_index], prefab->format, &red, &green, &blue);
+
+                    // Determine if the pixel is red or green (or bad) and set the wall map appropriately.
+                    if (red & !green & !blue) {
+                        wall_map[pf_row * map->wall_map_wd + pf_col] = false;
+                    } else if (!red & green & !blue) {
+                        wall_map[pf_row * map->wall_map_wd + pf_col] = true;
+                    } else {
+                        fprintf(stderr,
+                                "Unknown RGB value (%d, %d, %d) for pixel at (%d, %d) on collision map\n",
+                                red, green, blue, pf_pixel_x, pf_pixel_y);
+                        exit(23498234);
+                    }
                 }
             }
-
         }
     }
-    */
 
-    // Free the prefab image and loading apparatus.
+    // Clean up and return.
+    if (SDL_MUSTLOCK(prefab))
+        SDL_UnlockSurface(prefab);
     free(PREFAB_FPATH);
     free(prefab);
-
     return map;
 
 }
