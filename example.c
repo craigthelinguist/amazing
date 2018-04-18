@@ -45,11 +45,11 @@ int main(int argc, char *argv[]) {
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         fprintf(stderr, "Could not initialise SDL. ERror: %s\n", SDL_GetError());
-        exit(23408);
-    }
 
-    SDL_Window *window = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 680, 400, SDL_WINDOW_SHOWN);
-    if (!window) {
+    SDL_Window *window = SDL_CreateWindow("Test", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 680, 400, SDL_WINDOW_SHOWN);        exit(23408);
+}
+
+if (!window) {
         fprintf(stderr, "Could not initialise SDL window. Error: %s\n", SDL_GetError());
         exit(2309);
     }

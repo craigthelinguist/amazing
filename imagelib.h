@@ -52,6 +52,10 @@ struct image *imagelib_get(const char *fname);
 /// FILE_NAME_TOO_LONG, or LIBRARY_FULL.
 bool imagelib_load(const char *fname, SDL_Renderer *renderer);
 
+/// Construct a filepath using the current asset directory and the specified filename that should be in that directory.
+/// If the library hasn't been initialised, this returns NULL.
+char *make_asset_fpath(const char *fname);
+
 /// Print an error message, and also the current imagelib error.
 #define IMAGELIB_ERR(...) do { \
 fprintf(stderr, __VA_ARGS__);\

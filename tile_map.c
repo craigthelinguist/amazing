@@ -1,5 +1,9 @@
 
 #include "graph0.h"
+#include "imagelib.h"
+#include <SDL_image.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "tile_map0.h"
 
 tileset_index *get_tile_map(map_data *map) {
@@ -122,11 +126,30 @@ bool is_box_colliding(map_data *map, SDL_Rect box) {
 
 map_data *generate_map_data(graph *graph, image_sheet tile_set) {
 
-
+    // Get the tile maps.
     map_data *map = make_map_data(graph->width, tile_set);
     tileset_index *tile_map = get_tile_map(map);
     bool *wall_map = get_wall_map(map);
 
+    // Create the filepath for loading the prefab.
+    char *PREFAB_FPATH = make_asset_fpath(FNAME_PREFAB_PATHING);
+    if (!PREFAB_FPATH) {
+        fprintf(stderr, "Generating tile map but image library hasn't been initialised.");
+        exit(104821);
+    }
+
+    // Load the actual prefab.
+    SDL_Surface *prefab = IMG_Load(PREFAB_FPATH);
+    if (!prefab) {
+        fprintf(stderr, "Failed to load prefab collision map. SDL Error: %s\n", SDL_GetError());
+        free(PREFAB_FPATH);
+        exit(2354802935);
+    }
+
+    // TODO: Now fill up the tile_map and wall_map using info from the graph and the RGB values
+    // TODO: on the prefab image.
+
+    /*
     for (int row = 0; row < graph->width; row++) {
         for (int col = 0; col < graph->width; col++) {
             TILE tile = graph->nmap[row * graph->width + col];
@@ -153,6 +176,11 @@ map_data *generate_map_data(graph *graph, image_sheet tile_set) {
 
         }
     }
+    */
+
+    // Free the prefab image and loading apparatus.
+    free(PREFAB_FPATH);
+    free(prefab);
 
     return map;
 

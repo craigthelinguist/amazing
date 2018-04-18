@@ -151,9 +151,23 @@ char *fname_append(const char *string, const char *suffix) {
     return result;
 }
 
+/// Construct a filepath using the current asset directory and the specified filename that should be in that directory.
+/// If the library hasn't been initialised, this returns NULL. This mallocs a string, which the caller must free.
+char *make_asset_fpath(const char *fname) {
+    const int BASE_PATH_LEN = strlen(lib.base_path);
+    const int FNAME_LEN = strlen(fname);
+    char *fpath = malloc(sizeof(char) * (BASE_PATH_LEN + FNAME_LEN + 1));
+    strcpy(fpath, lib.base_path);
+    strcpy(fpath + BASE_PATH_LEN, fname);
+    fpath[BASE_PATH_LEN + FNAME_LEN] = '\0';
+    return fpath;
+}
+
 /// Resolve the filename, turning it into an absolute filepath. This mallocs a string, which the caller must free. If
 /// the file does not exist, then `NULL` is returned, and `IMAGELIB_ERRCODE` is set to one of the following:
 /// FILE_NAME_TOO_LONG, FILE_NOT_FOUND.
+///
+/// Unlike `get_fpath`, this function will do some internal error checking.
 char *resolve_fname(const char *fname) {
 
     // Check the file name is not too long.
