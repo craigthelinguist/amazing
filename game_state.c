@@ -135,16 +135,7 @@ void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_a
     // Create the player entity.
     add_entity(game_state, gui, start_pos_x, start_pos_y, "celes");
 
-    // Load the maze grid and its pathing map.
-    if (!imagelib_load("maze-grid", gui->renderer)) {
-        IMAGELIB_ERR("Could not load the maze grid");
-    }
-    if (!imagelib_load("maze-grid-pathing", gui->renderer)) {
-        IMAGELIB_ERR("Could not load the maze grid pathing.");
-    }
-
-    image_sheet tile_set = make_image_sheet(*imagelib_get("maze-grid"), PREFAB_WIDTH);
-
-    map_data *map = generate_map_data(game_state->graph, tile_set);
+    // Construct the tile_map and wall_map.
+    map_data *map = generate_map_data(game_state->graph, gui->renderer, "maze-grid", "maze-grid-pathing.png");
 
 }

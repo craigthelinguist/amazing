@@ -1,4 +1,5 @@
 
+#include "game_state0.h"
 #include "graph0.h"
 #include "imagelib.h"
 #include <SDL_image.h>
@@ -97,9 +98,9 @@ bool is_box_colliding(map_data *map, SDL_Rect box) {
 
     // By custom, anything out of bounds is considered a "wall".
     // So let's check if any of the four corners of the box are out of bounds.
-    if  (box.x < 0 || box.x + box.w >= MAP_WD_PIXELS + MAP_TILE_SZ || box.y < 0
-         || box.y + box.h >= MAP_WD_PIXELS + MAP_TILE_SZ)
-            return true;
+    if (box.x < 0 || box.x + box.w >= MAP_WD_PIXELS + MAP_TILE_SZ || box.y < 0
+        || box.y + box.h >= MAP_WD_PIXELS + MAP_TILE_SZ)
+        return true;
 
     // The box is colliding if it touches any tile which is a wall. We don't presume a uniform sprite size, so we have
     // to iterate over the tile-sized chunks inside the box.
@@ -124,50 +125,39 @@ bool is_box_colliding(map_data *map, SDL_Rect box) {
 
 }
 
-map_data *generate_map_data(graph *graph, image_sheet tile_set) {
-
-    // Get the tile maps and some other parameters.
-    map_data *map = make_map_data(graph->width, tile_set);
+/// Set the tile_map. We have to figure out which index on the prefab is going to go at this entry in the
+/// tile_map. The prefabs are indexed so they correspond directly to the way a node is represented as a
+/// binary string in a graph.
+void generate_tile_map(map_data *map, graph *graph) {
     tileset_index *tile_map = get_tile_map(map);
+    for (int row = 0; row < graph->width; row++) {
+        for (int col = 0; col < graph->width; col++) {
+            const int TILE_INDEX = row * graph->width + col;
+            tileset_index prefab_index = graph->nmap[TILE_INDEX];
+            tile_map[TILE_INDEX] = prefab_index;
+        }
+    }
+}
+
+void generate_wall_map(map_data *map, SDL_Surface *wall_map_img) {
+
+
     bool *wall_map = get_wall_map(map);
 
-    // Create the filepath for loading the prefab.
-    char *PREFAB_FPATH = make_asset_fpath(FNAME_PREFAB_PATHING);
-    if (!PREFAB_FPATH) {
-        fprintf(stderr, "Generating tile map but image library hasn't been initialised.");
-        exit(104821);
-    }
+    if (SDL_MUSTLOCK(wall_map_img))
+        SDL_LockSurface(wall_map_img);
 
-    // Load the actual prefab and lock its SDL_Surface.
-    SDL_Surface *prefab = IMG_Load(PREFAB_FPATH);
-    if (!prefab) {
-        fprintf(stderr, "Failed to load prefab collision map. SDL Error: %s\n", SDL_GetError());
-        free(PREFAB_FPATH);
-        exit(2354802935);
-    }
-
-    if (SDL_MUSTLOCK(prefab))
-        SDL_LockSurface(prefab);
-
+    /*
     // TODO: the bottom loop is incomplete and segfaults at the moment, but the code works (and does nothing) without it
 
     for (int row = 0; row < graph->width; row++) {
         for (int col = 0; col < graph->width; col++) {
 
-            /* Set the tile_map. We have to figure out which index on the prefab is going to go at this entry in the
-             * tile_map. The prefabs are indexed so they correspond directly to the way a node is represented as a
-             * binary string in a graph. */
 
             const int TILE_INDEX = row * graph->width + col;
             tileset_index prefab_index = graph->nmap[TILE_INDEX];
             tile_map[TILE_INDEX] = prefab_index;
 
-            /*
-             * Set the collision map. This is harder. First, a single entry in tile_map corresponds to a square of
-             * entries in wall_map, so we have to fill out a subarray in wall_map per iteration. To know what to put at
-             * each position, we look at the corresponding position on the appropriate tile in the prefab above (the
-             * one at `prefab_index`). The RGB values at those positions will determine whether the tiles are walkable.
-             */
 
             // The (row, col) in the wall_map where we begin iteration.
             const int TILES_PER_PREFAB = (PREFAB_WIDTH / MAP_TILE_SZ) * (PREFAB_WIDTH / MAP_TILE_SZ);
@@ -177,7 +167,7 @@ map_data *generate_map_data(graph *graph, image_sheet tile_set) {
             // The top-left (x, y) on the prefab image of the tile corresponding to the (row, col) above.
             // TODO: we need to extract the (row, col) from prefab_index
             // TODO: then turn the (row, col) into the pixel position (x, y)
-            int pf_pixel_x0= 0;
+            int pf_pixel_x0 = 0;
             int pf_pixel_y0 = 0;
 
             // Iterate over the tiles inside the prefab tile.
@@ -211,12 +201,43 @@ map_data *generate_map_data(graph *graph, image_sheet tile_set) {
             }
         }
     }
+    */
 
     // Clean up and return.
-    if (SDL_MUSTLOCK(prefab))
-        SDL_UnlockSurface(prefab);
-    free(PREFAB_FPATH);
-    free(prefab);
+    if (SDL_MUSTLOCK(wall_map_img))
+        SDL_UnlockSurface(wall_map_img);
+
+}
+
+map_data *generate_map_data(graph *graph, SDL_Renderer *renderer, const char *PREFAB_TILES, const char *PREFAB_WALLS) {
+
+    // Load the prefab tiles.
+    if (!imagelib_load(PREFAB_TILES, renderer))
+        IMAGELIB_ERR("Could not load the prefab tiles.");
+
+    // Create the filepath for loading the wall_map as an SDL_Surface.
+    char *PREFAB_WALLS_FPATH = make_asset_fpath(PREFAB_WALLS);
+    if (!PREFAB_WALLS_FPATH) {
+        fprintf(stderr, "Generating tilemap but imagelib hasn't been initialised.");
+        exit(1204102);
+    }
+
+    // Load the wall_map as an SDL_Surface. In this format, we can inspect its pixels.
+    SDL_Surface *wall_map_img = IMG_Load(PREFAB_WALLS_FPATH);
+    if (!wall_map_img) {
+        fprintf(stderr, "Failed to load prefab collision map. SDL Error: %s\n", SDL_GetError());
+        free(PREFAB_WALLS_FPATH);
+        exit(2354802935);
+    }
+
+    // Create the map using the prefab tiles.
+    image_sheet tile_set = make_image_sheet(*imagelib_get(PREFAB_TILES), PREFAB_WIDTH);
+    map_data *map = make_map_data(graph->width, tile_set);
+
+    // Initialise the game tile_map and wall_map.
+    generate_tile_map(map, graph);
+    generate_wall_map(map, wall_map_img);
+    free(wall_map_img);
     return map;
 
 }

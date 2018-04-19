@@ -5,6 +5,7 @@
 #include "graph0.h"
 #include "graphical_constants.h"
 #include "image.h"
+#include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -43,6 +44,6 @@ bool is_tile_walkable(map_data *map, int16_t row, int16_t col);
 
 bool is_box_colliding(map_data *map, SDL_Rect box);
 
-map_data *generate_map_data(graph *graph, image_sheet tile_set);
+map_data *generate_map_data(graph *graph, SDL_Renderer *renderer, const char *PREFAB_TILES, const char *PREFAB_WALLS);
 
 #endif
