@@ -139,13 +139,12 @@ void generate_tile_map(map_data *map, graph *graph) {
     }
 }
 
-void generate_wall_map(map_data *map, SDL_Surface *wall_map_img) {
 
+
+void generate_wall_map(map_data *map, SDL_Surface *wall_map_img) {
 
     bool *wall_map = get_wall_map(map);
 
-    if (SDL_MUSTLOCK(wall_map_img))
-        SDL_LockSurface(wall_map_img);
 
     /*
     // TODO: the bottom loop is incomplete and segfaults at the moment, but the code works (and does nothing) without it
@@ -203,10 +202,6 @@ void generate_wall_map(map_data *map, SDL_Surface *wall_map_img) {
     }
     */
 
-    // Clean up and return.
-    if (SDL_MUSTLOCK(wall_map_img))
-        SDL_UnlockSurface(wall_map_img);
-
 }
 
 map_data *generate_map_data(graph *graph, SDL_Renderer *renderer, const char *PREFAB_TILES, const char *PREFAB_WALLS) {
@@ -222,13 +217,16 @@ map_data *generate_map_data(graph *graph, SDL_Renderer *renderer, const char *PR
         exit(1204102);
     }
 
-    // Load the wall_map as an SDL_Surface. In this format, we can inspect its pixels.
+    // Load the wall_map as an SDL_Surface. In this format, we can inspect its pixels. Lock it as well, if necessary.
     SDL_Surface *wall_map_img = IMG_Load(PREFAB_WALLS_FPATH);
+    free(PREFAB_WALLS_FPATH);
     if (!wall_map_img) {
         fprintf(stderr, "Failed to load prefab collision map. SDL Error: %s\n", SDL_GetError());
-        free(PREFAB_WALLS_FPATH);
         exit(2354802935);
     }
+
+    if (SDL_MUSTLOCK(wall_map_img))
+        SDL_LockSurface(wall_map_img);
 
     // Create the map using the prefab tiles.
     image_sheet tile_set = make_image_sheet(*imagelib_get(PREFAB_TILES), PREFAB_WIDTH);
@@ -237,6 +235,10 @@ map_data *generate_map_data(graph *graph, SDL_Renderer *renderer, const char *PR
     // Initialise the game tile_map and wall_map.
     generate_tile_map(map, graph);
     generate_wall_map(map, wall_map_img);
+
+    // Clean up and return.
+    if (SDL_MUSTLOCK(wall_map_img))
+        SDL_UnlockSurface(wall_map_img);
     free(wall_map_img);
     return map;
 

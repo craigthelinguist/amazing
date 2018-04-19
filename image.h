@@ -28,6 +28,8 @@ struct image_sheet {
 
 SDL_Rect extract_img(image_sheet *sheet, int index);
 
+void extract_rowcol_from_index(image_sheet *sheet, int index, int *row, int *col);
+
 SDL_Rect extract_img_rowcol(image_sheet *sheet, int row, int col);
 
 image_sheet make_image_sheet(image image, uint16_t img_size);
