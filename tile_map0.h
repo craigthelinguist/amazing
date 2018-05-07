@@ -21,16 +21,22 @@ struct map_data {
     // The prefabbed blocks of the maze that fit together.
     image_sheet tile_set;
 
-    // The width (and height) of the tile map. Will be the number of prefab blocks that fit into the map.
-    int16_t tile_map_wd;
+    // The size (in bytes) of the tile_map.
+    // The number of entries in the tile_map is tile_map_sz / sizeof(tileset_index)
+    int16_t tile_map_sz;
 
-    // The width (and height) of the wall map. Will be the same as the graphical constant.
-    int16_t wall_map_wd;
+    // The size (in bytes) of the wall_map.
+    // The number of entries in the tile_map is wall_map_sz / sizeof(bool)
+    // But since sizeof(bool) = 1, this is the same as wall_map_sz
+    int16_t wall_map_sz;
+
+    // The width (and height) of the maze in prefab tiles.
+    int16_t maze_width_in_prefabs;
 
     // An array containing (successively) the data about the tiles on the map, and the collision map for them.
     // An entry in the map_data is an index, referencing an image stored on the image_sheet above.
     // An entry in the wall_map is true iff it is a wall iff it is NOT walkable
-    char *data;
+    char data[];
 
 };
 
