@@ -21,6 +21,7 @@ const int64_t WALL_WIDTH  = 1;
 // Forward declarations.
 void draw_tile_walls(GUI gui, GameState game_state, int64_t x, int64_t y);
 void draw_maze(GUI gui, GameState game_state);
+void draw_maze_old(GUI gui, GameState game_state);
 void draw_entities(GUI gui, GameState game_state);
 
 void render_game(GUI gui, GameState game_state) {
@@ -32,6 +33,35 @@ void render_game(GUI gui, GameState game_state) {
 
 #define MIN(X,Y) (X < Y ? X : Y)
 #define MAX(X,Y) (X > Y ? X : Y)
+
+void draw_maze(GUI gui, GameState game_state) {
+
+    // Pull out the data we'll be using.
+	Camera camera = game_state->camera;
+	map_data *map_data = game_state->map_data;
+    tileset_index *tilemap = get_tile_map(map_data);
+    image_sheet tileset = map_data->tile_set;
+    const int MAZE_WD_PREFABS = map_data->maze_width_in_prefabs;
+
+    for (int row = 0; row < MAZE_WD_PREFABS; row++) {
+        for (int col = 0; col < MAZE_WD_PREFABS; col++) {
+            tileset_index ti = tilemap[row * MAZE_WD_PREFABS + col];
+            SDL_Rect draw_boundary = extract_img(&tileset, ti);
+            draw_image_offset(
+                    gui,
+                    camera,
+                    &tileset.img,
+                    col * tileset.img_size,
+                    row * tileset.img_size,
+                    draw_boundary.x,
+                    draw_boundary.y,
+                    draw_boundary.w,
+                    draw_boundary.h
+            );
+        }
+    }
+
+}
 
 void draw_entities(GUI gui, GameState game_state) {
     Camera camera = game_state->camera;
@@ -66,7 +96,7 @@ void draw_entities(GUI gui, GameState game_state) {
     }
 }
 
-void draw_maze(GUI gui, GameState game_state) {
+void draw_maze_old(GUI gui, GameState game_state) {
 
     GRAPH graph = game_state->graph;
     Camera camera = game_state->camera;

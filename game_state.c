@@ -136,6 +136,8 @@ void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_a
     add_entity(game_state, gui, start_pos_x, start_pos_y, "celes");
 
     // Construct the tile_map and wall_map.
-    map_data *map = generate_map_data(game_state->graph, gui->renderer, "maze-grid", "maze-grid-pathing.png");
+    const char *FNAME_PREFABS = "maze-grid";
+    const char *FNAME_PATHING = "maze-grid-pathing.png";
+    game_state->map_data = generate_map_data(game_state->graph, gui->renderer, FNAME_PREFABS, FNAME_PATHING);
 
 }
