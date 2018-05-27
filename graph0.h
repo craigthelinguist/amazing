@@ -4,6 +4,7 @@
 #define GRAPH0_H
 
 #include "graph.h"
+#include <stdio.h>
 
 typedef struct graph graph;
 
@@ -24,6 +25,8 @@ struct graph {
 };
 
 void connect_edge(graph *g, POINT p, enum Direction dir);
+
+void pprint_graph(FILE *out, GRAPH g);
 
 #endif
 

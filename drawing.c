@@ -31,8 +31,6 @@ void draw_image_offset(GUI gui, Camera camera, image *image, int x, int y, int o
 	// Compute the position on the screen where it should be drawn.
 	Point_Int32 pt = offset_point(gui, camera, x, y);
 
-	printf("drawing at (%d, %d0\n", pt.x, pt.y);
-
 	SDL_Rect dest_rect = {pt.x, pt.y, wd, ht};
 	SDL_RenderCopy(get_renderer(gui), image->texture, &text_rect, &dest_rect);
 

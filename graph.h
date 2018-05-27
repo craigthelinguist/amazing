@@ -10,14 +10,19 @@ typedef enum MazeAlgo MazeAlgo;
 
 typedef struct graph *GRAPH;
 
+// A tile is bit-packed. Each bit represents whether there is a neighbour aruond it.
+//  * First bit: whether there is a neighbour above.
+//  * Second bit: whether there is a neighbour to the right.
+//  * Third bit: whether there is a neighbour below.
+//  * Fourth bit: whether there is a neighbour to the left.
 typedef int16_t TILE;
+
+enum Direction {TOP, RIGHT, DOWN, LEFT};
 
 struct Point {
 	int16_t x;
 	int16_t y;
 };
-
-enum Direction {TOP, RIGHT, DOWN, LEFT};
 
 typedef struct Point POINT;
 typedef enum Direction DIRECTION;

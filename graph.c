@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
+#include "utils0.h"
 
 void terminate(const char *err_msg) {
 	fprintf(stderr, err_msg);
@@ -101,15 +102,15 @@ void check_point_in_bounds(graph *g, POINT p) {
 }
 
 /**
- * Connects an edge in a graph. NB: don't rename this to `connect`, as it seems to clash with something in the latest
- * SDL2 libraries.
+ * Connects an edge in a graph. This means we update two tiles so they are mutually connected.
+ * NB: don't rename this to `connect`, as it seems to clash with something in the latest SDL2 libraries.
  */
 void connect_edge(graph *g, POINT p, enum Direction dir) {
 	check_point_in_bounds(g, p);
-	g->nmap[p.x * g->width + p.y] |= (1 << dir);
+	g->nmap[p.y * g->width + p.x] |= (1 << dir);
 	p = point_after_moving(p, dir);
 	check_point_in_bounds(g, p);
-	g->nmap[p.x * g->width + p.y] |= (1 << opposite_direction(dir));
+	g->nmap[p.y * g->width + p.x] |= (1 << opposite_direction(dir));
 }
 
 int16_t is_connected(TILE nmap, enum Direction dir) {
@@ -201,4 +202,19 @@ void generate_maze(graph *graph) {
     }
 
     graph->exit_pos = last_node_visited;
+}
+
+void pprint_graph(FILE *out, graph *g) {
+    fprintf(out, "Pretty printing graph....\n");
+    fprintf(out, "Start tile: (%d, %d)\n", g->start_pos.y, g->start_pos.x);
+    fprintf(out, "End tile:   (%d, %d)\n", g->exit_pos.y, g->exit_pos.x);
+    for (int row = 0; row < g->width; row++) {
+        for (int col = 0; col < g->width; col++) {
+            TILE t = g->nmap[row * g->width + col];
+            fprintf(out, "(%d, %d): ", row, col);
+            print_bits(out, t, 4);
+            fprintf(out, "\t");
+        }
+        fprintf(out, "\n");
+    }
 }
