@@ -125,12 +125,13 @@ void free_game_state(GameState game_state) {
 void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_algo) {
 
     game_state->graph = graph_make(maze_size, maze_algo);
-    game_state->camera = make_camera(0, 0);
 
-    // This is the starting position of the player.
+    // The player's starting position is in the middle of the starting tile.
+    // The camera should be centred on their starting position.
     POINT start_pos = graph_start_pos(game_state->graph);
-    int start_pos_x = TILE_WIDTH/2 - COLLISION_SIZE/2;
-    int start_pos_y = TILE_HEIGHT/2 - COLLISION_SIZE/2;
+    int start_pos_x = start_pos.x * PREFAB_WIDTH + PREFAB_WIDTH / 2 - SPRITE_WD / 2;
+    int start_pos_y = start_pos.y * PREFAB_WIDTH + PREFAB_WIDTH / 2 - SPRITE_HT / 2;
+    game_state->camera = make_camera(start_pos_x, start_pos_y);
 
     // Create the player entity.
     add_entity(game_state, gui, start_pos_x, start_pos_y, "celes");
