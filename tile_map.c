@@ -88,39 +88,47 @@ bool is_tile_walkable(map_data *map, int16_t row, int16_t col) {
     return wall_map + skip_ahead;
 }
 
+bool is_out_of_bounds(map_data *map, SDL_Rect box) {
+    const int MAP_WD = map->maze_width_in_prefabs * PREFAB_WIDTH;
+    if (box.x < 0 || box.y < 0) {
+        return true;
+    } else if (box.x + box.w >= MAP_WD) {
+        return true;
+    } else if (box.y + box.h >= MAP_WD) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 bool is_box_colliding(map_data *map, SDL_Rect box) {
 
-    // Let's pull out some map parameters for easier reference.
-    const int MAP_WD = map->wall_map_sz;
-    const int MAP_WD_PIXELS = MAP_WD * MAP_TILE_SZ;
+    // Each row of the wall_map contains this many tiles.
+    const int TILES_PER_ROW = (PREFAB_WIDTH / MAP_TILE_SZ) * map->maze_width_in_prefabs;
 
     // By custom, anything out of bounds is considered a "wall".
     // So let's check if any of the four corners of the box are out of bounds.
-    if (box.x < 0 || box.x + box.w >= MAP_WD_PIXELS + MAP_TILE_SZ || box.y < 0
-        || box.y + box.h >= MAP_WD_PIXELS + MAP_TILE_SZ)
+    if (is_out_of_bounds(map, box)) {
         return true;
+    }
 
-    // The box is colliding if it touches any tile which is a wall. We don't presume a uniform sprite size, so we have
-    // to iterate over the tile-sized chunks inside the box.
+    // Iterate over all the tiles inside the box and check if any of them is a wall.
     int start_x, start_y, end_x, end_y;
     start_x = box.x / MAP_TILE_SZ;
     start_y = box.y / MAP_TILE_SZ;
     end_x = (box.x + box.w) / MAP_TILE_SZ;
     end_y = (box.y + box.h) / MAP_TILE_SZ;
-
-    // Iterate over tiles inside the box and check them in the wall map.
     bool *wall_map = get_wall_map(map);
-    int row, col;
-    for (row = start_y; row < end_y; row++) {
-        for (col = start_x; col < end_x; col++) {
-            const int skip_ahead = (row * map->wall_map_sz) + col;
-            if (*(wall_map + skip_ahead)) {
-                return false;
+    for (int row = start_y; row < end_y; row++) {
+        for (int col = start_x; col < end_x; col++) {
+            bool touching_wall = wall_map[row * TILES_PER_ROW + col];
+            if (touching_wall) {
+                return true;
             }
         }
     }
-    return true;
 
+    return false;
 }
 
 /// Set the tile_map. We have to figure out which index on the prefab is going to go at this entry in the
@@ -129,15 +137,6 @@ bool is_box_colliding(map_data *map, SDL_Rect box) {
 void generate_tile_map(map_data *map, graph *graph) {
     tileset_index *tile_map = get_tile_map(map);
     memcpy(tile_map, graph->nmap, sizeof(tileset_index) * graph->width * graph->width);
-
-    /*
-    for (int entry = 0; entry < graph->width * graph->width; entry++) {
-        tileset_index prefab_index = graph->nmap[entry];
-        printf("saving value %d at index %d\n", graph->nmap[entry], entry);
-        tile_map[entry] = prefab_index;
-    }
-    */
-
 }
 
 
@@ -162,9 +161,6 @@ void generate_wall_map(map_data *map, SDL_Surface *wall_map_img) {
 
     // Read from the wall map image and load the data into the wall_map.
     Uint32 *pixels = (Uint32 *)wall_map_img->pixels;
-
-    // DEBUG: Clear the logfile.
-    remove("amazing.log");
 
     for (int row = 0; row < MAZE_WD_PREFABS; row++) {
         for (int col = 0; col < MAZE_WD_PREFABS; col++) {
@@ -203,9 +199,9 @@ void generate_wall_map(map_data *map, SDL_Surface *wall_map_img) {
                     Uint8 red, green, blue;
                     SDL_GetRGB(pixels[pf_pixel_index], wall_map_img->format, &red, &green, &blue);
 
-                    if (red & !green & !blue) {
+                    if (red && !green && !blue) {
                         wall_map[pf_index] = false;
-                    } else if (!red & green & !blue) {
+                    } else if (!red && green && !blue) {
                         wall_map[pf_index] = true;
                     } else {
                         fprintf(stderr,
