@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 #include "game_loop.h"
 #include "keymap.h"
@@ -96,7 +97,7 @@ void run_game_loop(GUI gui, GameState game_state) {
         }
 
 		render_game(gui, game_state);
-		
+
 	}
 
     end_of_game_loop:;

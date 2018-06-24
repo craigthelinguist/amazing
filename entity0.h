@@ -8,7 +8,7 @@
 #define ENTITY_BASE_WIDTH 16
 #define ENTITY_BASE_HEIGHT 16
 
-struct Entity {
+struct entity {
     int32_t xpos;
     int32_t ypos;
     Sprite sprite;

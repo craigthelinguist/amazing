@@ -49,21 +49,25 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
     if (key_state[SDL_SCANCODE_UP]) dy -= 1;
     if (key_state[SDL_SCANCODE_DOWN]) dy += 1;
 
-
     // Check if player can move.
+    SDL_Rect bbox = entity_bbox_after_move(&game_state->entities[PLAYER_ENTITY_INDEX], dx, dy);
+
+    // TODO: why do I have to flip the value?
+    if (is_box_colliding(game_state->map_data, bbox)) {
+        pan_camera(game_state->camera, dx, dy);
+        game_state->entities[PLAYER_ENTITY_INDEX].xpos += dx;
+        game_state->entities[PLAYER_ENTITY_INDEX].ypos += dy;
+    }
+
+    /*
     SDL_Rect new_pos = (SDL_Rect) {
         game_state->entities[PLAYER_ENTITY_INDEX].xpos + dx,
         game_state->entities[PLAYER_ENTITY_INDEX].ypos + dy,
         SPRITE_COLLISION_WD,
         SPRITE_COLLISION_HT
     };
+    */
 
-    // TODO: why do I have to flip the value?
-    if (is_box_colliding(game_state->map_data, new_pos)) {
-        pan_camera(game_state->camera, dx, dy);
-        game_state->entities[PLAYER_ENTITY_INDEX].xpos += dx;
-        game_state->entities[PLAYER_ENTITY_INDEX].ypos += dy;
-    }
     
     // Update player sprite's animation name.
     Sprite sprite = game_state->entities[PLAYER_ENTITY_INDEX].sprite;

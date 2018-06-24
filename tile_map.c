@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include "tile_map0.h"
 
+void debug_wall_map(FILE *fp, map_data *map);
+
 tileset_index *get_tile_map(map_data *map) {
     return (tileset_index *) &map->data;
 }
@@ -216,17 +218,7 @@ void generate_wall_map(map_data *map, SDL_Surface *wall_map_img) {
         }
     }
 
-    /*
-     * DEBUG: prints the wall_map to a file.
-    for (int i = 0; i < map->wall_map_sz; i++) {
-        if (i % (17 * 3) == 0)
-            LOG("\n");
-        if (map->wall_map_sz) {
-            LOG("%d", wall_map[i]);
-        }
-    }
-     */
-
+    debug_wall_map(stdout, map);
 
 }
 
@@ -270,3 +262,21 @@ map_data *generate_map_data(graph *graph, SDL_Renderer *renderer, const char *PR
     return map;
 
 }
+
+/*
+ * DEBUG: prints the wall_map to a file. */
+void debug_wall_map(FILE *out, map_data *map) {
+
+    bool *wall_map = get_wall_map(map);
+
+    for (int i = 0; i < map->wall_map_sz; i++) {
+        if (i % ((PREFAB_WIDTH / MAP_TILE_SZ) * map->maze_width_in_prefabs) == 0)
+            fprintf(out, "\n");
+        if (map->wall_map_sz) {
+            fprintf(out, "%d", wall_map[i]);
+        }
+    }
+
+
+}
+
