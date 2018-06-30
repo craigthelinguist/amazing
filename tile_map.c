@@ -120,16 +120,17 @@ bool is_box_colliding(map_data *map, SDL_Rect box) {
     start_y = box.y / MAP_TILE_SZ;
     end_x = (box.x + box.w) / MAP_TILE_SZ;
     end_y = (box.y + box.h) / MAP_TILE_SZ;
+
     bool *wall_map = get_wall_map(map);
-    for (int row = start_y; row < end_y; row++) {
-        for (int col = start_x; col < end_x; col++) {
+    for (int row = start_y; row <= end_y; row++) {
+        for (int col = start_x; col <= end_x; col++) {
             bool touching_wall = wall_map[row * TILES_PER_ROW + col];
             if (touching_wall) {
                 return true;
             }
         }
     }
-
+    fprintf(stdout, "\n");
     return false;
 }
 
@@ -193,8 +194,8 @@ void generate_wall_map(map_data *map, SDL_Surface *wall_map_img) {
                     int pf_index = pf_row * WALL_MAP_WD + pf_col;
 
                     // Get a pixel position inside the prefab tile.
-                    int pf_pixel_x = pf_pixel_x0 + col2 * MAP_TILE_SZ + 1;
-                    int pf_pixel_y = pf_pixel_y0 + row2 * MAP_TILE_SZ + 1;
+                    int pf_pixel_x = pf_pixel_x0 + col2 * MAP_TILE_SZ;
+                    int pf_pixel_y = pf_pixel_y0 + row2 * MAP_TILE_SZ;
                     int pf_pixel_index = pf_pixel_y * wall_map_img->w + pf_pixel_x;
 
                     // Get actual RGB values for pixel and set the appropriate entry in the wall_map.
@@ -276,7 +277,6 @@ void debug_wall_map(FILE *out, map_data *map) {
             fprintf(out, "%d", wall_map[i]);
         }
     }
-
 
 }
 

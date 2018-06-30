@@ -58,15 +58,6 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
         game_state->entities[PLAYER_ENTITY_INDEX].ypos += dy;
     }
 
-    /*
-    SDL_Rect new_pos = (SDL_Rect) {
-        game_state->entities[PLAYER_ENTITY_INDEX].xpos + dx,
-        game_state->entities[PLAYER_ENTITY_INDEX].ypos + dy,
-        SPRITE_COLLISION_WD,
-        SPRITE_COLLISION_HT
-    };
-    */
-
     
     // Update player sprite's animation name.
     Sprite sprite = game_state->entities[PLAYER_ENTITY_INDEX].sprite;

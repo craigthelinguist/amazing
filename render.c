@@ -22,10 +22,10 @@ const int64_t WALL_WIDTH = 1;
 
 // Forward declarations.
 void draw_tile_walls(GUI gui, GameState game_state, int64_t x, int64_t y);
-
 void draw_maze(GUI gui, GameState game_state);
-
 void draw_entities(GUI gui, GameState game_state);
+void debug_shade_walkable(GUI gui, GameState game_state);
+void debug_draw_grid(GUI gui, GameState game_state);
 
 void render_game(GUI gui, GameState game_state) {
     clear_screen(gui);
@@ -65,36 +65,6 @@ void draw_maze(GUI gui, GameState game_state) {
         }
     }
 
-    // DEBUG: draw walkable/non-walkable.
-    SDL_SetRenderDrawColor(gui->renderer, 255, 0, 0, 100);
-    const int TILES_PER_ROW = (PREFAB_WIDTH / MAP_TILE_SZ) * map_data->maze_width_in_prefabs;
-    bool *wall_map = get_wall_map(map_data);
-
-    for (int row = 0; row < TILES_PER_ROW; row++) {
-        for (int col = 0; col < TILES_PER_ROW; col++) {
-
-            // printf("row, col: %d, %d\n", row, col);
-            int x = col * MAP_TILE_SZ;
-            int y = row * MAP_TILE_SZ;
-            // printf("x, y: %d, %d\n", x, y);
-
-            Point_Int32 pt = offset_point(gui, camera, x, y);
-            SDL_Rect rect = (SDL_Rect) {pt.x, pt.y, MAP_TILE_SZ, MAP_TILE_SZ};
-
-            if (wall_map[row * TILES_PER_ROW + col]) {
-                SDL_SetRenderDrawColor(gui->renderer, 255, 0, 0, 25);
-                SDL_RenderFillRect(get_renderer(gui), &rect);
-            } else {
-                SDL_SetRenderDrawColor(gui->renderer, 0, 255, 0, 25);
-                SDL_RenderFillRect(get_renderer(gui), &rect);
-            }
-
-        }
-    }
-
-    // SDL_Rect rect = {pt.x, pt.y, wd, ht};
-    // SDL_RenderDrawRect(get_renderer(gui), &rect);
-
 }
 
 void draw_entities(GUI gui, GameState game_state) {
@@ -117,14 +87,16 @@ void draw_entities(GUI gui, GameState game_state) {
         // set_drawcol(gui, 0, 0, 255, 0);
 
         // DEBUG: draw entity box.
-        SDL_Rect ebox = entity_pos(entity);
-        SDL_SetRenderDrawColor(gui->renderer, 255, 255, 0, 255);
-        draw_rect(gui, camera, ebox.x, ebox.y, ebox.w, ebox.h);
+        // SDL_Rect ebox = entity_pos(entity);
+        // SDL_SetRenderDrawColor(gui->renderer, 255, 255, 0, 255);
+        // draw_rect(gui, camera, ebox.x, ebox.y, ebox.w, ebox.h);
 
         // DEBUG: draw collision box.
+        /*
         SDL_Rect bbox = entity_bbox(entity);
         SDL_SetRenderDrawColor(gui->renderer, 0, 0, 255, 255);
         draw_rect(gui, camera, bbox.x, bbox.y, bbox.w, bbox.h);
+        */
 
     }
 }
@@ -176,4 +148,69 @@ void draw_tile_walls(GUI gui, GameState game_state, int64_t x, int64_t y) {
 }
 
 
+void debug_shade_walkable(GUI gui, GameState game_state) {
 
+    // Pull out the data we'll be using.
+    Camera camera = game_state->camera;
+    map_data *map_data = game_state->map_data;
+    tileset_index *tilemap = get_tile_map(map_data);
+    image_sheet tileset = map_data->tile_set;
+    const int MAZE_WD_PREFABS = map_data->maze_width_in_prefabs;
+
+    // DEBUG: draw walkable/non-walkable.
+    SDL_SetRenderDrawColor(gui->renderer, 255, 0, 0, 100);
+    const int TILES_PER_ROW = (PREFAB_WIDTH / MAP_TILE_SZ) * map_data->maze_width_in_prefabs;
+    bool *wall_map = get_wall_map(map_data);
+
+    for (int row = 0; row < TILES_PER_ROW; row++) {
+        for (int col = 0; col < TILES_PER_ROW; col++) {
+
+            // printf("row, col: %d, %d\n", row, col);
+            int x = col * MAP_TILE_SZ;
+            int y = row * MAP_TILE_SZ;
+            // printf("x, y: %d, %d\n", x, y);
+
+            Point_Int32 pt = offset_point(gui, camera, x, y);
+            SDL_Rect rect = (SDL_Rect) {pt.x, pt.y, MAP_TILE_SZ, MAP_TILE_SZ};
+
+            if (wall_map[row * TILES_PER_ROW + col]) {
+                SDL_SetRenderDrawColor(gui->renderer, 255, 0, 0, 25);
+                SDL_RenderFillRect(get_renderer(gui), &rect);
+            } else {
+                SDL_SetRenderDrawColor(gui->renderer, 0, 255, 0, 25);
+                SDL_RenderFillRect(get_renderer(gui), &rect);
+            }
+
+        }
+    }
+}
+
+void debug_draw_grid(GUI gui, GameState game_state) {
+
+    // Pull out the data we'll be using.
+    Camera camera = game_state->camera;
+    map_data *map_data = game_state->map_data;
+    tileset_index *tilemap = get_tile_map(map_data);
+    image_sheet tileset = map_data->tile_set;
+    const int MAZE_WD_PREFABS = map_data->maze_width_in_prefabs;
+
+    // DEBUG: draw walkable/non-walkable.
+    SDL_SetRenderDrawColor(gui->renderer, 177, 120, 0, 255);
+    const int TILES_PER_ROW = (PREFAB_WIDTH / MAP_TILE_SZ) * map_data->maze_width_in_prefabs;
+    bool *wall_map = get_wall_map(map_data);
+
+    for (int row = 0; row < TILES_PER_ROW; row++) {
+        for (int col = 0; col < TILES_PER_ROW; col++) {
+
+            // printf("row, col: %d, %d\n", row, col);
+            int x = col * MAP_TILE_SZ;
+            int y = row * MAP_TILE_SZ;
+            // printf("x, y: %d, %d\n", x, y);
+
+            Point_Int32 pt = offset_point(gui, camera, x, y);
+            SDL_Rect rect = (SDL_Rect) {pt.x, pt.y, MAP_TILE_SZ, MAP_TILE_SZ};
+            SDL_RenderDrawRect(get_renderer(gui), &rect);
+
+        }
+    }
+}

@@ -16,7 +16,7 @@ SDL_Rect entity_bbox(struct entity *entity) {
 SDL_Rect entity_bbox_after_move(struct entity *entity, int dx, int dy) {
     return (SDL_Rect) {
         entity->xpos + dx,
-        entity->ypos + dy + SPRITE_HT - SPRITE_COLLISION_HT,
+        entity->ypos + SPRITE_HT - SPRITE_COLLISION_HT + dy,
         SPRITE_COLLISION_WD,
         SPRITE_COLLISION_HT
     };
