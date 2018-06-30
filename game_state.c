@@ -52,8 +52,7 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
     // Check if player can move.
     SDL_Rect bbox = entity_bbox_after_move(&game_state->entities[PLAYER_ENTITY_INDEX], dx, dy);
 
-    // TODO: why do I have to flip the value?
-    if (is_box_colliding(game_state->map_data, bbox)) {
+    if (!is_box_colliding(game_state->map_data, bbox)) {
         pan_camera(game_state->camera, dx, dy);
         game_state->entities[PLAYER_ENTITY_INDEX].xpos += dx;
         game_state->entities[PLAYER_ENTITY_INDEX].ypos += dy;

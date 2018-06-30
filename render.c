@@ -25,8 +25,6 @@ void draw_tile_walls(GUI gui, GameState game_state, int64_t x, int64_t y);
 
 void draw_maze(GUI gui, GameState game_state);
 
-void draw_maze_old(GUI gui, GameState game_state);
-
 void draw_entities(GUI gui, GameState game_state);
 
 void render_game(GUI gui, GameState game_state) {
@@ -129,36 +127,6 @@ void draw_entities(GUI gui, GameState game_state) {
         draw_rect(gui, camera, bbox.x, bbox.y, bbox.w, bbox.h);
 
     }
-}
-
-void draw_maze_old(GUI gui, GameState game_state) {
-
-    GRAPH graph = game_state->graph;
-    Camera camera = game_state->camera;
-
-    /* Debug info */
-    //fprintf(stdout, "Drawing the graph, which has width %d\n", graph_width(graph));
-
-    // Draw the background.
-    const int8_t WIDTH = graph_width(graph);
-    set_drawcol2(gui, COLOUR_FLOOR);
-    fill_rect(gui, camera, 0, 0, WIDTH * TILE_WIDTH, WIDTH * TILE_HEIGHT);
-
-    /* Debug info
-    POINT start = graph_start_pos(graph);
-    POINT exit = graph_exit_pos(graph);
-    fprintf(stdout, "Start: (%d, %d) and End: (%d, %d)\n", start.x, start.y, exit.x, exit.y);
-    */
-
-    // Draw the start and end tiles.
-    set_drawcol2(gui, COLOUR_FLOOR_SPECIAL);
-    POINT start_tile = graph_start_pos(graph);
-    POINT exit_tile = graph_exit_pos(graph);
-    fill_rect(gui, camera,
-              +TILE_WIDTH * start_tile.x, TILE_HEIGHT * start_tile.y, TILE_WIDTH, TILE_HEIGHT);
-    fill_rect(gui, camera,
-              +TILE_WIDTH * exit_tile.x, TILE_HEIGHT * exit_tile.y, TILE_WIDTH, TILE_HEIGHT);
-
 }
 
 void draw_tile_walls(GUI gui, GameState game_state, int64_t x, int64_t y) {

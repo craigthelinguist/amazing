@@ -202,9 +202,9 @@ void generate_wall_map(map_data *map, SDL_Surface *wall_map_img) {
                     SDL_GetRGB(pixels[pf_pixel_index], wall_map_img->format, &red, &green, &blue);
 
                     if (red && !green && !blue) {
-                        wall_map[pf_index] = false;
-                    } else if (!red && green && !blue) {
                         wall_map[pf_index] = true;
+                    } else if (!red && green && !blue) {
+                        wall_map[pf_index] = false;
                     } else {
                         fprintf(stderr,
                                 "Unknown RGB value (%d, %d, %d) for pixel at (%d, %d) on collision map\n",
