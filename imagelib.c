@@ -217,6 +217,9 @@ Sprite load_sprite(const char *fname, SDL_Renderer *renderer) {
     char *json_fname = fname_append(fname, ".json");
     char *json_fpath = resolve_fname(json_fname);
     cJSON *json = load_json_absolute(json_fpath);
+    if (!json) {
+        printf("WTF THE JSON IS NULL\n");
+    }
 
     // Parse the JSON as a sprite sheet.
     struct Sprite *sprite = NULL;
@@ -279,36 +282,59 @@ bool json_is_sprite(cJSON *root, image *sprite_sheet) {
 		return false;
 	}
 
-	// The JSON must be an object.
+	// The root must be an object.
 	if (!cJSON_IsObject(root)) {
 		IMAGELIB_ERRCODE = SS_ROOT_NOT_OBJECT;
 		return false;
 	}
 
-    // Now look at each animation in the sprite sheet.
-	cJSON *array;
-	cJSON_ArrayForEach(array, root) {
+	// Check the width and height fields. They should fit into 8-bit numbers.
+	cJSON *wd = cJSON_GetObjectItem(root, "wd");
+	cJSON *ht = cJSON_GetObjectItem(root, "ht");
+	if (!wd || !ht || !cJSON_IsNumber(wd) || !cJSON_IsNumber(ht)) {
+		IMAGELIB_ERRCODE = BAD_JSON;
+		return false;
+	} else {
+	    double d1 = wd->valuedouble;
+	    double d2 = ht->valuedouble;
+	    if (ceil(d1) != d1 || ceil(d2) != d2) {
+            IMAGELIB_ERRCODE = BAD_JSON;
+            return false;
+        }
+        // TODO: check they fit into 8-bit numbers (which is how wd and ht are stored on sprite sheet)
+	}
 
-		// Offsets must be specified in an array.
-		if (!cJSON_IsArray(array)) {
-			IMAGELIB_ERRCODE = SS_MUST_SPECIFY_OFFSETS_IN_ARRAY;
-			return false;
-		}
+	// Animations should be stored in the "anims" field.
+    cJSON *anims = cJSON_GetObjectItem(root, "anims");
+	if (!cJSON_IsObject(anims)) {
+	    IMAGELIB_ERRCODE = BAD_JSON;
+	    return false;
+	}
 
-		// Animation name not allowed to be too long.
-		if (strlen(array->string) > MAX_ANIMATION_NAME_LEN - 1) {
-			IMAGELIB_ERRCODE = NAME_TOO_LONG;
-			return false;
-		}
+	cJSON *entry;
+	cJSON_ArrayForEach(entry, anims) {
 
-        // Now look at each frame in this animation.
-		cJSON *offset;
-		int num_offsets = 0;
-		cJSON_ArrayForEach(offset, array) {
-			num_offsets++;
+        // Offsets must be specified in an array.
+        if (!cJSON_IsArray(entry)) {
+            IMAGELIB_ERRCODE = SS_MUST_SPECIFY_OFFSETS_IN_ARRAY;
+            return false;
+        }
 
-			// Ensure the offset is a value.
-			if (!cJSON_IsNumber(offset) || !double_is_nat(offset->valuedouble)) {
+        // Animation name not allowed to be too long.
+        if (strlen(entry->string) > MAX_ANIMATION_NAME_LEN - 1) {
+            IMAGELIB_ERRCODE = NAME_TOO_LONG;
+            return false;
+        }
+
+        // Look at each frame in this animation.
+        cJSON *offset;
+        int num_offsets = 0;
+        cJSON_ArrayForEach(offset, entry) {
+
+            num_offsets++;
+
+            // Ensure the offset is a value.
+            if (!cJSON_IsNumber(offset) || !double_is_nat(offset->valuedouble)) {
                 IMAGELIB_ERRCODE = OFFSETS_MUST_BE_NATURAL_NUMBERS;
                 return false;
             }
@@ -329,7 +355,7 @@ bool json_is_sprite(cJSON *root, image *sprite_sheet) {
                 return false;
             }
 
-		}
+        }
 
         // There must be an even number of offsets (2 per frame).
         if (num_offsets % 2 != 0) {
@@ -340,41 +366,38 @@ bool json_is_sprite(cJSON *root, image *sprite_sheet) {
 	}
 
     return true;
-
 }
-
-
-
 
 /// Create, initialise, and return a new sprite from the given sprite sheet and JSON object. No error-checking is done if the
 /// JSON object is invalid; you should call `json_is_sprite` to ensure that it is valid before calling this. A fresh Sprite is
 /// allocated, which must be freed by the caller.
-Sprite sprite_from_json(cJSON *obj, image *sprite_sheet) {
+Sprite sprite_from_json(cJSON *root, image *sprite_sheet) {
 
-    // Figure out how many animations in the sprite, and how many frames in all the animations.
-    int num_animations = cJSON_GetArraySize(obj);
+    // Compute amount of space to allocate for the Sprite by counting how many animations and frames in the sprite.
+    cJSON *anims = cJSON_GetObjectItem(root, "anims");
+    int num_animations = cJSON_GetArraySize(anims);
     int total_num_frames = 0;
     cJSON *anim;
-    cJSON_ArrayForEach(anim, obj)
-    {
+    cJSON_ArrayForEach(anim, anims) {
         total_num_frames += cJSON_GetArraySize(anim);
     }
-
-    // Now we know how much space to allocate for the Sprite.
+    total_num_frames /= 2; // each frame has two entries in array
     int sprite_size = sizeof(struct Sprite)
                       + sizeof(struct Animation) * num_animations
                       + sizeof(struct Offset) * total_num_frames;
     struct Sprite *sprite = calloc(1, sprite_size);
+
+    // Initialise the sprite.
     sprite->sprite_sheet = sprite_sheet;
-    
-    // Initialise the fields in the sprite. The rest default to zero (because of `calloc`).
     sprite->num_animations = num_animations;
     // TODO: it doesn't like compiling without the cast. Why?
     sprite->current_animation = (struct Animation *) &sprite->animations; // the first animation
+    sprite->wd = cJSON_GetObjectItem(root, "wd")->valueint;
+    sprite->ht = cJSON_GetObjectItem(root, "ht")->valueint;
 
     // Loop over the animations in the sprite, initialising each one.
-    int8_t *index_ptr = (int8_t *) & sprite->animations;
-    cJSON_ArrayForEach(anim, obj) {
+    int8_t *index_ptr = (int8_t *) &sprite->animations;
+    cJSON_ArrayForEach(anim, anims) {
 
         // Initialise the fields in the array.
         struct Animation *animation = (struct Animation *) index_ptr;
@@ -397,14 +420,13 @@ Sprite sprite_from_json(cJSON *obj, image *sprite_sheet) {
         // TODO: a character is running we can use the same animations, but with a shorter
         // TODO: frame delay).
         animation->frame_delay = 80;
-        
+
         // Figure out where the next Animation starts.
         index_ptr += sizeof(struct Animation) + sizeof(struct Offset) * animation->num_frames;
 
     }
 
     return sprite;
-
 }
 
 void print_imagelib_errmsg(void) {

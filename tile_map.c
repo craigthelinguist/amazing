@@ -130,7 +130,6 @@ bool is_box_colliding(map_data *map, SDL_Rect box) {
             }
         }
     }
-    fprintf(stdout, "\n");
     return false;
 }
 

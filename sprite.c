@@ -54,7 +54,6 @@ struct Animation *get_anim_by_name(Sprite sprite, const char *anim_name) {
     // Step along the array.
     for (int i = 0; i < sprite->num_animations; i++) {
         struct Animation *anim = (struct Animation *) needle;
-
         if (!strcmp(anim->name, anim_name)) {
             found_name = true;
             break;

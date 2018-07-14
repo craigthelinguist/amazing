@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     }
 
     GUI gui = make_gui(800, 600);
-	set_bgcol(gui, (Colour) { 120, 120, 120, 255 });
+	set_bgcol(gui, (Colour) { 15, 15, 15, 255 });
 
 	// Set up the image library.
 	if (!imagelib_init(ASSET_DIRECTORY, 5)) {

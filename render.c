@@ -70,6 +70,18 @@ void draw_maze(GUI gui, GameState game_state) {
 void draw_entities(GUI gui, GameState game_state) {
     Camera camera = game_state->camera;
     for (int32_t index = 0; index < game_state->num_entities; index++) {
+
+        Entity *entity = &game_state->entities[index];
+        int image_top_y = entity->ypos;
+        struct Sprite *sprite = entity->sprite;
+        struct Offset offset = get_current_frame(sprite);
+
+        draw_image_offset(gui, camera, sprite->sprite_sheet,
+                          entity->xpos, entity->ypos,
+                          offset.x, offset.y,
+                          sprite->wd, sprite->ht);
+
+        /*
         Entity *entity = &game_state->entities[index];
         int IMAGE_WD = SPRITE_WD;
         int IMAGE_HT = SPRITE_HT;
@@ -83,6 +95,7 @@ void draw_entities(GUI gui, GameState game_state) {
                 entity->xpos, image_top_y,
                 offset.x, offset.y,
                 SPRITE_WD, SPRITE_HT);
+        */
 
         // set_drawcol(gui, 0, 0, 255, 0);
 

@@ -107,7 +107,7 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
 void add_entity(GameState game_state, GUI gui, int32_t xpos, int32_t ypos, char *sprite_sheet_name) {
     Sprite sprite = load_sprite(sprite_sheet_name, gui->renderer);
     if (!sprite) {
-        IMAGELIB_ERR("Failed to load sprite `%s`", "bollocks");
+        IMAGELIB_ERR("Failed to load sprite `%s`", sprite_sheet_name);
     }
     Entity player_entity = (Entity) {xpos, ypos, sprite};
     game_state->entities[game_state->num_entities++] = player_entity;
@@ -133,17 +133,36 @@ void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_a
 
     // The player's starting position is in the middle of the starting tile.
     // The camera should be centred on their starting position.
-    POINT start_pos = graph_start_pos(game_state->graph);
-    int start_pos_x = start_pos.x * PREFAB_WIDTH + PREFAB_WIDTH / 2 - SPRITE_WD / 2;
-    int start_pos_y = start_pos.y * PREFAB_WIDTH + PREFAB_WIDTH / 2 - SPRITE_HT / 2;
-    game_state->camera = make_camera(start_pos_x, start_pos_y);
+    {
+        POINT start_pos = graph_start_pos(game_state->graph);
+        int start_pos_x = start_pos.x * PREFAB_WIDTH + PREFAB_WIDTH / 2 - SPRITE_WD / 2;
+        int start_pos_y = start_pos.y * PREFAB_WIDTH + PREFAB_WIDTH / 2 - SPRITE_HT / 2;
+        game_state->camera = make_camera(start_pos_x, start_pos_y);
+        add_entity(game_state, gui, start_pos_x, start_pos_y, "celes");
+    }
 
-    // Create the player entity.
-    add_entity(game_state, gui, start_pos_x, start_pos_y, "celes");
+    // Add the statue. Its position is in the middle of the exit tile.
+    /*
+    {
+        POINT exit_pos = game_state->graph->exit_pos;
+        int exit_pos_x = exit_pos.x * PREFAB_WIDTH + PREFAB_WIDTH / 2 - STATUE_WD / 2;
+        int exit_pos_y = exit_pos.x * PREFAB_WIDTH + PREFAB_WIDTH / 2 - STATUE_HT / 2;
+        add_entity(game_state, gui, exit_pos_x, exit_pos_y, "statue");
+    }
+     */
 
     // Construct the tile_map and wall_map.
     const char *FNAME_PREFABS = "maze-grid";
     const char *FNAME_PATHING = "maze-grid-pathing.png";
     game_state->map_data = generate_map_data(game_state->graph, gui->renderer, FNAME_PREFABS, FNAME_PATHING);
+
+    // Debugging.
+    {
+        POINT start_pos = game_state->graph->start_pos;
+        POINT exit_pos = game_state->graph->exit_pos;
+        fprintf(stdout, "\n");
+        fprintf(stdout, "Start: (%d, %d)\n", start_pos.x, start_pos.y);
+        fprintf(stdout, "Exit: (%d, %d)\n", exit_pos.x, exit_pos.y);
+    }
 
 }

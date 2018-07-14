@@ -13,9 +13,14 @@
 // This is the size of a sprite's image in total.
 #define SPRITE_WD 32
 #define SPRITE_HT 48
-
-// This is the part of the sprite which has a collision box, starting from the bottom-left.
 #define SPRITE_COLLISION_WD 32
 #define SPRITE_COLLISION_HT 32
+
+// Dimensions for the statue.
+#define STATUE_WD 64
+#define STATUE_HT 96
+#define STATUE_COLLISION_WD 64
+#define STATUE_COLLISION_HT 48
+
 
 #endif

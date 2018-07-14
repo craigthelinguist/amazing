@@ -29,6 +29,8 @@ struct Sprite {
     struct Animation *current_animation;
     int8_t current_frame;
     long long frame_age;
+    uint8_t wd;
+    uint8_t ht;
     struct Animation animations[];
 };
 
