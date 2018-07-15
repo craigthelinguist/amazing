@@ -11,6 +11,8 @@
 struct entity {
     int32_t xpos;
     int32_t ypos;
+    uint8_t collision_wd;
+    uint8_t collision_ht;
     Sprite sprite;
 };
 

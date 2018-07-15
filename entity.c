@@ -7,18 +7,18 @@
 SDL_Rect entity_bbox(struct entity *entity) {
     return (SDL_Rect) {
         entity->xpos,
-        entity->ypos + SPRITE_HT - SPRITE_COLLISION_HT,
-        SPRITE_COLLISION_WD,
-        SPRITE_COLLISION_HT
+        entity->ypos + entity->sprite->ht - entity->collision_ht,
+        entity->collision_wd,
+        entity->collision_ht,
     };
 }
 
 SDL_Rect entity_bbox_after_move(struct entity *entity, int dx, int dy) {
     return (SDL_Rect) {
         entity->xpos + dx,
-        entity->ypos + SPRITE_HT - SPRITE_COLLISION_HT + dy,
-        SPRITE_COLLISION_WD,
-        SPRITE_COLLISION_HT
+        entity->ypos + entity->sprite->ht - entity->collision_ht + dy,
+        entity->collision_wd,
+        entity->collision_ht
     };
 }
 
@@ -26,8 +26,8 @@ SDL_Rect entity_pos(struct entity *entity) {
     return (SDL_Rect) {
         entity->xpos,
         entity->ypos,
-        SPRITE_WD,
-        SPRITE_HT
+        entity->sprite->wd,
+        entity->sprite->ht,
     };
 }
 

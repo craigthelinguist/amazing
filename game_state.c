@@ -104,12 +104,13 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
     
 }
 
-void add_entity(GameState game_state, GUI gui, int32_t xpos, int32_t ypos, char *sprite_sheet_name) {
+void add_entity(GameState game_state, GUI gui, int32_t xpos, int32_t ypos,
+                uint8_t collision_wd, uint8_t collision_ht, char *sprite_sheet_name) {
     Sprite sprite = load_sprite(sprite_sheet_name, gui->renderer);
     if (!sprite) {
         IMAGELIB_ERR("Failed to load sprite `%s`", sprite_sheet_name);
     }
-    Entity player_entity = (Entity) {xpos, ypos, sprite};
+    Entity player_entity = (Entity) {xpos, ypos, collision_wd, collision_ht, sprite};
     game_state->entities[game_state->num_entities++] = player_entity;
 }
 
@@ -135,21 +136,19 @@ void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_a
     // The camera should be centred on their starting position.
     {
         POINT start_pos = graph_start_pos(game_state->graph);
-        int start_pos_x = start_pos.x * PREFAB_WIDTH + PREFAB_WIDTH / 2 - SPRITE_WD / 2;
-        int start_pos_y = start_pos.y * PREFAB_WIDTH + PREFAB_WIDTH / 2 - SPRITE_HT / 2;
-        game_state->camera = make_camera(start_pos_x, start_pos_y);
-        add_entity(game_state, gui, start_pos_x, start_pos_y, "celes");
+        int pos_x = start_pos.x * PREFAB_WIDTH + PREFAB_WIDTH / 2 - SPRITE_WD / 2;
+        int pos_y = start_pos.y * PREFAB_WIDTH + PREFAB_WIDTH / 2 - SPRITE_HT / 2;
+        game_state->camera = make_camera(pos_x, pos_y);
+        add_entity(game_state, gui, pos_x, pos_y, SPRITE_COLLISION_WD, SPRITE_COLLISION_HT, "celes");
     }
 
     // Add the statue. Its position is in the middle of the exit tile.
-    /*
     {
         POINT exit_pos = game_state->graph->exit_pos;
-        int exit_pos_x = exit_pos.x * PREFAB_WIDTH + PREFAB_WIDTH / 2 - STATUE_WD / 2;
-        int exit_pos_y = exit_pos.x * PREFAB_WIDTH + PREFAB_WIDTH / 2 - STATUE_HT / 2;
-        add_entity(game_state, gui, exit_pos_x, exit_pos_y, "statue");
+        int pos_x = exit_pos.x * PREFAB_WIDTH + PREFAB_WIDTH / 2 - STATUE_WD / 2;
+        int pos_y = exit_pos.y * PREFAB_WIDTH + PREFAB_WIDTH / 2 - STATUE_HT / 2;
+        add_entity(game_state, gui, pos_x, pos_y, STATUE_COLLISION_WD, STATUE_COLLISION_HT, "statue");
     }
-     */
 
     // Construct the tile_map and wall_map.
     const char *FNAME_PREFABS = "maze-grid";

@@ -105,11 +105,9 @@ void draw_entities(GUI gui, GameState game_state) {
         // draw_rect(gui, camera, ebox.x, ebox.y, ebox.w, ebox.h);
 
         // DEBUG: draw collision box.
-        /*
         SDL_Rect bbox = entity_bbox(entity);
         SDL_SetRenderDrawColor(gui->renderer, 0, 0, 255, 255);
         draw_rect(gui, camera, bbox.x, bbox.y, bbox.w, bbox.h);
-        */
 
     }
 }
