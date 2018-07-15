@@ -10,6 +10,7 @@
 #include "render.h"
 #include "sprite.h"
 #include "tile_map0.h"
+#include "utils0.h"
 
 // The index containing the player.
 #define PLAYER_ENTITY_INDEX 0
@@ -37,6 +38,29 @@ void load_image(GUI gui, char *image_name) {
     }
 }
 
+bool colliding_with_other_entities(GameState game_state, SDL_Rect bbox, int entity_index) {
+
+    // TODO: Could improve this by ignoring any entities outside the camera. This could be done during the phase where
+    // TODO: you sort entities for draw order (thereby culling any entities that can't be seen). This could also
+    // TODO: probably be improved by using a quad tree.
+
+    for (int i = 0; i < game_state->num_entities; i++) {
+        if (i == entity_index) {
+            continue;
+        }
+        SDL_Rect other_bbox = entity_bbox(&game_state->entities[i]);
+        if (overlapping_boxes(bbox, other_bbox)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool player_can_move(GameState game_state, int dx, int dy, int entity_index) {
+    SDL_Rect bbox = entity_bbox_after_move(&game_state->entities[entity_index], dx, dy);
+    return !is_box_colliding(game_state->map_data, bbox)
+        && !colliding_with_other_entities(game_state, bbox, entity_index);
+}
 
 void update_game(GameState game_state, KeyStateMap key_state, long long update_time) {
 
@@ -52,13 +76,12 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
     // Check if player can move.
     SDL_Rect bbox = entity_bbox_after_move(&game_state->entities[PLAYER_ENTITY_INDEX], dx, dy);
 
-    if (!is_box_colliding(game_state->map_data, bbox)) {
+    if (player_can_move(game_state, dx, dy, PLAYER_ENTITY_INDEX)) {
         pan_camera(game_state->camera, dx, dy);
         game_state->entities[PLAYER_ENTITY_INDEX].xpos += dx;
         game_state->entities[PLAYER_ENTITY_INDEX].ypos += dy;
     }
 
-    
     // Update player sprite's animation name.
     Sprite sprite = game_state->entities[PLAYER_ENTITY_INDEX].sprite;
 
