@@ -16,10 +16,15 @@ typedef struct map_data map_data;
 
 typedef TILE tileset_index;
 
+struct tileset {
+    struct image_sheet lower;
+    struct image_sheet upper;
+};
+
 struct map_data {
 
     // The prefabbed blocks of the maze that fit together.
-    image_sheet tile_set;
+    struct tileset tileset;
 
     // The size (in bytes) of the tile_map.
     // The number of entries in the tile_map is tile_map_sz / sizeof(tileset_index)
@@ -44,12 +49,18 @@ tileset_index *get_tile_map(map_data *map);
 
 bool *get_wall_map(map_data *map);
 
-map_data *make_map_data(int maze_width, image_sheet prefabs);
+map_data *make_map_data(int maze_width, struct tileset tileset);
 
 bool is_tile_walkable(map_data *map, int16_t row, int16_t col);
 
 bool is_box_colliding(map_data *map, SDL_Rect box);
 
-map_data *generate_map_data(graph *graph, SDL_Renderer *renderer, const char *PREFAB_TILES, const char *PREFAB_WALLS);
+map_data *generate_map_data(
+        graph *graph,
+        SDL_Renderer *renderer,
+        const char *PREFAB_LOWER,
+        const char *PREFAB_UPPER,
+        const char *PREFAB_WALLS
+);
 
 #endif

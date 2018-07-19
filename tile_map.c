@@ -19,12 +19,18 @@ bool *get_wall_map(map_data *map) {
     return (bool *) (ptr + map->tile_map_sz);
 }
 
-map_data *make_map_data(int maze_width, image_sheet prefabs) {
+map_data *make_map_data(int maze_width, struct tileset tileset) {
 
     // Do a bunch of sanity checks.
-    if (prefabs.img_size != PREFAB_WIDTH) {
-        fprintf(stderr, "make_map_data: prefab width is wrong. Should be %d, but it's %d\n",
-                PREFAB_WIDTH, prefabs.img_size);
+    if (tileset.lower.img_size != PREFAB_WIDTH) {
+        fprintf(stderr, "make_map_data: tileset.lower prefab width is wrong. Should be %d but it's %d\n",
+                PREFAB_WIDTH, tileset.lower.img_size);
+        exit(123518);
+    }
+
+    if (tileset.upper.img_size != PREFAB_WIDTH) {
+        fprintf(stderr, "make_map_data: tileset.upper prefab width is wrong. Should be %d but it's %d\n",
+                PREFAB_WIDTH, tileset.upper.img_size);
         exit(123518);
     }
 
@@ -34,9 +40,15 @@ map_data *make_map_data(int maze_width, image_sheet prefabs) {
         exit(123519);
     }
 
-    if (prefabs.img.wd % prefabs.img_size != 0 || prefabs.img.ht % prefabs.img_size != 0) {
-        fprintf(stderr, "make_map_data: size of prefab not a multiple of size of prefab block.");
+    // Check the width/height of the tileset layers are multiples of the width/height of images on the image sheets.
+    if (tileset.lower.img.wd % tileset.lower.img_size != 0 || tileset.lower.img.ht % tileset.lower.img_size != 0) {
+        fprintf(stderr, "make_map_data: size of tileset.lower not a multiple of size of prefab block.");
         exit(123520);
+    }
+
+    if (tileset.upper.img.wd % tileset.upper.img_size != 0 || tileset.upper.img.ht % tileset.upper.img_size != 0) {
+        fprintf(stderr, "make_map_data: size of tileset.upper not a multiple of size of prefab block.");
+        exit(123521);
     }
 
     if (maze_width <= 0) {
@@ -60,12 +72,11 @@ map_data *make_map_data(int maze_width, image_sheet prefabs) {
     }
 
     // Initialise the map_data.
-    map->tile_set = prefabs;
+    map->tileset = tileset;
     map->tile_map_sz = TILE_MAP_SIZE;
     map->wall_map_sz = WALL_MAP_SIZE;
     map->maze_width_in_prefabs = maze_width;
     memset(&map->data, 0, TILE_MAP_SIZE + WALL_MAP_SIZE);
-
     return map;
 
 }
@@ -178,7 +189,7 @@ void generate_wall_map(map_data *map, SDL_Surface *wall_map_img) {
 
             // The top-leftmost pixel of that position.
             int pf_tile_row, pf_tile_col;
-            extract_rowcol_from_index(&map->tile_set, PF_TILE_INDEX, &pf_tile_row, &pf_tile_col);
+            extract_rowcol_from_index(&map->tileset.upper, PF_TILE_INDEX, &pf_tile_row, &pf_tile_col);
 
             int pf_pixel_x0 = pf_tile_col * PREFAB_WIDTH;
             int pf_pixel_y0 = pf_tile_row * PREFAB_WIDTH;
@@ -222,20 +233,29 @@ void generate_wall_map(map_data *map, SDL_Surface *wall_map_img) {
 
 }
 
-map_data *generate_map_data(graph *graph, SDL_Renderer *renderer, const char *PREFAB_TILES, const char *PREFAB_WALLS) {
+map_data *generate_map_data(
+        graph *graph,
+        SDL_Renderer *renderer,
+        const char *PREFAB_LOWER,
+        const char *PREFAB_UPPER,
+        const char *PREFAB_WALLS)
+{
 
-    // Load the prefab tiles.
-    if (!imagelib_load(PREFAB_TILES, renderer))
-        IMAGELIB_ERR("Could not load the prefab tiles.");
+    // Load the prefab (upper and lower layers).
+    if (!imagelib_load(PREFAB_LOWER, renderer)) {
+        fprintf(stderr, "Tried to load %s\n", PREFAB_LOWER);
+        IMAGELIB_ERR("Could not load lower prefab tileset");
+    }
+    if (!imagelib_load(PREFAB_UPPER, renderer))
+        IMAGELIB_ERR("Could not load upper prefab tileset");
 
-    // Create the filepath for loading the wall_map as an SDL_Surface.
+    // Load the walls as an `SDL_Surface`. In this format, we can inspect its pixels. Lock it as well, if necessary.
     char *PREFAB_WALLS_FPATH = make_asset_fpath(PREFAB_WALLS);
     if (!PREFAB_WALLS_FPATH) {
         fprintf(stderr, "Generating tilemap but imagelib hasn't been initialised.");
         exit(1204102);
     }
 
-    // Load the wall_map as an SDL_Surface. In this format, we can inspect its pixels. Lock it as well, if necessary.
     SDL_Surface *wall_map_img = IMG_Load(PREFAB_WALLS_FPATH);
     free(PREFAB_WALLS_FPATH);
     if (!wall_map_img) {
@@ -243,12 +263,16 @@ map_data *generate_map_data(graph *graph, SDL_Renderer *renderer, const char *PR
         exit(2354802935);
     }
 
-    if (SDL_MUSTLOCK(wall_map_img))
+    if (SDL_MUSTLOCK(wall_map_img)) {
         SDL_LockSurface(wall_map_img);
+    }
 
     // Create the map using the prefab tiles.
-    image_sheet tile_set = make_image_sheet(*imagelib_get(PREFAB_TILES), PREFAB_WIDTH);
-    map_data *map = make_map_data(graph->width, tile_set);
+    struct tileset tileset = {
+            make_image_sheet(*imagelib_get(PREFAB_LOWER), PREFAB_WIDTH),
+            make_image_sheet(*imagelib_get(PREFAB_UPPER), PREFAB_WIDTH)
+    };
+    map_data *map = make_map_data(graph->width, tileset);
 
     // Initialise the game tile_map and wall_map.
     generate_tile_map(map, graph);
@@ -262,6 +286,7 @@ map_data *generate_map_data(graph *graph, SDL_Renderer *renderer, const char *PR
     return map;
 
 }
+
 
 /*
  * DEBUG: prints the wall_map to a file. */

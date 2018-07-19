@@ -9,6 +9,7 @@
 #include "render.h"
 #include "sprite0.h"
 #include "stdbool.h"
+#include "tile_map0.h"
 #include <unistd.h>
 
 // Some default colours.
@@ -22,41 +23,38 @@ const int64_t WALL_WIDTH = 1;
 
 // Forward declarations.
 void draw_tile_walls(GUI gui, GameState game_state, int64_t x, int64_t y);
-void draw_maze(GUI gui, GameState game_state);
+void draw_maze_layer(GUI gui, Camera camera, GameState game_state, bool upper);
 void draw_entities(GUI gui, GameState game_state);
 void debug_shade_walkable(GUI gui, GameState game_state);
 void debug_draw_grid(GUI gui, GameState game_state);
 
 void render_game(GUI gui, GameState game_state) {
     clear_screen(gui);
-    draw_maze(gui, game_state);
+    Camera camera = game_state->camera;
+    draw_maze_layer(gui, camera, game_state, false);
     draw_entities(gui, game_state);
+    draw_maze_layer(gui, camera, game_state, true);
     refresh_screen(gui);
 }
 
-#define MIN(X, Y) (X < Y ? X : Y)
-#define MAX(X, Y) (X > Y ? X : Y)
+void draw_maze_layer(GUI gui, Camera camera, GameState game_state, bool upper) {
 
-void draw_maze(GUI gui, GameState game_state) {
-
-    // Pull out the data we'll be using.
-    Camera camera = game_state->camera;
-    map_data *map_data = game_state->map_data;
-    tileset_index *tilemap = get_tile_map(map_data);
-    image_sheet tileset = map_data->tile_set;
-    const int MAZE_WD_PREFABS = map_data->maze_width_in_prefabs;
+    // If `upper`, draw the upper layer. Otherwise draw the lower layer.
+    struct image_sheet image_sheet = upper ?
+            game_state->map_data->tileset.upper : game_state->map_data->tileset.lower;
+    const int MAZE_WD_PREFABS = game_state->map_data->maze_width_in_prefabs;
+    tileset_index *tilemap = get_tile_map(game_state->map_data);
 
     for (int row = 0; row < MAZE_WD_PREFABS; row++) {
         for (int col = 0; col < MAZE_WD_PREFABS; col++) {
             tileset_index ti = tilemap[row * MAZE_WD_PREFABS + col];
-            SDL_Rect draw_boundary = extract_img(&tileset, ti);
-
+            SDL_Rect draw_boundary = extract_img(&image_sheet, ti);
             draw_image_offset(
                     gui,
                     camera,
-                    &tileset.img,
-                    col * tileset.img_size,
-                    row * tileset.img_size,
+                    &image_sheet.img,
+                    col * image_sheet.img_size,
+                    row * image_sheet.img_size,
                     draw_boundary.x,
                     draw_boundary.y,
                     draw_boundary.w,
@@ -64,7 +62,6 @@ void draw_maze(GUI gui, GameState game_state) {
             );
         }
     }
-
 }
 
 void draw_entities(GUI gui, GameState game_state) {
@@ -165,7 +162,6 @@ void debug_shade_walkable(GUI gui, GameState game_state) {
     Camera camera = game_state->camera;
     map_data *map_data = game_state->map_data;
     tileset_index *tilemap = get_tile_map(map_data);
-    image_sheet tileset = map_data->tile_set;
     const int MAZE_WD_PREFABS = map_data->maze_width_in_prefabs;
 
     // DEBUG: draw walkable/non-walkable.
@@ -202,7 +198,6 @@ void debug_draw_grid(GUI gui, GameState game_state) {
     Camera camera = game_state->camera;
     map_data *map_data = game_state->map_data;
     tileset_index *tilemap = get_tile_map(map_data);
-    image_sheet tileset = map_data->tile_set;
     const int MAZE_WD_PREFABS = map_data->maze_width_in_prefabs;
 
     // DEBUG: draw walkable/non-walkable.

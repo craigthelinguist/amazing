@@ -174,9 +174,15 @@ void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_a
     }
 
     // Construct the tile_map and wall_map.
-    const char *FNAME_PREFABS = "maze-grid";
-    const char *FNAME_PATHING = "maze-grid-pathing.png";
-    game_state->map_data = generate_map_data(game_state->graph, gui->renderer, FNAME_PREFABS, FNAME_PATHING);
+    const char *FNAME_TILESET_LOWER = "maze-grid-lower";
+    const char *FNAME_TILESET_UPPER = "maze-grid-upper";
+    const char *FNAME_PATHING       = "maze-grid-pathing.png";
+    game_state->map_data = generate_map_data(
+            game_state->graph,
+            gui->renderer,
+            FNAME_TILESET_LOWER,
+            FNAME_TILESET_UPPER,
+            FNAME_PATHING);
 
     // Debugging.
     {
