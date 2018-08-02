@@ -9,8 +9,8 @@
 #define ENTITY_BASE_HEIGHT 16
 
 struct entity {
-    int32_t xpos;
-    int32_t ypos;
+    float xpos;
+    float ypos;
     uint8_t collision_wd;
     uint8_t collision_ht;
     Sprite sprite;

@@ -24,20 +24,12 @@ GUI make_gui(const uint16_t WIDTH, const uint16_t HEIGHT) {
     return gui;
 }
 
-Point_Int32 offset_point(GUI gui, Camera camera, uint32_t x, uint32_t y) {
-
-    // Figure out the (x,y) of the top-left of the camera.
-    Point_Int32 camera_topleft = (Point_Int32) {
-            camera->centre_x - gui->screen_wd / 2,
-            camera->centre_y - gui->screen_ht / 2
+struct pt_float offset_point(GUI gui, Camera camera, uint32_t x, uint32_t y) {
+    // Figure out the top-left of the camera, then offset (x,y) by the camera, so it is relative to (0,0).
+    return (struct pt_float) {
+        x - (camera->centre_x - gui->screen_wd / 2),
+        y - (camera->centre_y - gui->screen_ht / 2)
     };
-
-    // Offset (x,y) by the camera, so it is relative to (0,0).
-    return (Point_Int32) {
-            x - camera_topleft.x,
-            y - camera_topleft.y
-    };
-
 }
 
 const SDL_PixelFormat *get_screen_format(GUI gui) {

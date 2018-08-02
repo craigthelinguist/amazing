@@ -7,11 +7,11 @@
 
 typedef struct Camera *Camera;
 
-Camera make_camera(int32_t x, int32_t y);
+Camera make_camera(float x, float y);
 
 void free_camera(Camera cam);
 
-void pan_camera(Camera cam, int32_t dx, int32_t dy);
+void pan_camera(Camera cam, float dx, float dy);
 
 #endif
 

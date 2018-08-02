@@ -6,8 +6,8 @@
 #include "camera.h"
 
 struct Camera {
-	int32_t centre_x;
-	int32_t centre_y;
+	float centre_x;
+	float centre_y;
 };
 
 #endif

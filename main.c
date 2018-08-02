@@ -19,9 +19,9 @@ static char *ASSET_DIRECTORY = "assets";
 int main(int argc, char* argv[]) {
 
 	// Parse command-line arguments.
-	int GRAPH_SIZE = 3;
+	int16_t GRAPH_SIZE = 3;
 	if (argc > 1) {
-		GRAPH_SIZE = atoi(argv[1]);
+		GRAPH_SIZE = (int16_t) atoi(argv[1]);
 	}
 
 	// Set up SDL and the gui.

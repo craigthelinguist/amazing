@@ -56,30 +56,34 @@ bool colliding_with_other_entities(GameState game_state, SDL_Rect bbox, int enti
     return false;
 }
 
-bool player_can_move(GameState game_state, int dx, int dy, int entity_index) {
+bool player_can_move(GameState game_state, float dx, float dy, int entity_index) {
     SDL_Rect bbox = entity_bbox_after_move(&game_state->entities[entity_index], dx, dy);
     return !is_box_colliding(game_state->map_data, bbox)
         && !colliding_with_other_entities(game_state, bbox, entity_index);
 }
 
-void update_game(GameState game_state, KeyStateMap key_state, long long update_time) {
+void update_game(GameState game_state, KeyStateMap key_state, long long update_time, long long dt) {
+
+    // How far the player should move in pixels-per-second.
+    const int MOVEMENT_PPS = 1;
 
     // Check direction player should move in.
     // TODO: if e.g. left and right are both pressed down, then the most recently pressed takes precedence.
-    int32_t dx = 0;
-    int32_t dy = 0;
-    if (key_state[SDL_SCANCODE_LEFT]) dx -= 1;
-    if (key_state[SDL_SCANCODE_RIGHT]) dx += 1;
-    if (key_state[SDL_SCANCODE_UP]) dy -= 1;
-    if (key_state[SDL_SCANCODE_DOWN]) dy += 1;
+    float dx = 0;
+    float dy = 0;
+    if (key_state[SDL_SCANCODE_LEFT]) dx -= MOVEMENT_PPS * dt;
+    if (key_state[SDL_SCANCODE_RIGHT]) dx += MOVEMENT_PPS * dt;
+    if (key_state[SDL_SCANCODE_UP]) dy -= MOVEMENT_PPS * dt;
+    if (key_state[SDL_SCANCODE_DOWN]) dy += MOVEMENT_PPS * dt;
 
     // Check if player can move.
     SDL_Rect bbox = entity_bbox_after_move(&game_state->entities[PLAYER_ENTITY_INDEX], dx, dy);
 
     if (player_can_move(game_state, dx, dy, PLAYER_ENTITY_INDEX)) {
         pan_camera(game_state->camera, dx, dy);
-        game_state->entities[PLAYER_ENTITY_INDEX].xpos += dx;
-        game_state->entities[PLAYER_ENTITY_INDEX].ypos += dy;
+        game_state->entities[PLAYER_ENTITY_INDEX].xpos += (MOVEMENT_PPS * dx);
+        game_state->entities[PLAYER_ENTITY_INDEX].ypos += (MOVEMENT_PPS * dy);
+        // fprintf(stdout, "dt = %d, moved by (%.2f, %.2f)\n", MOVEMENT_PPS * dx, MOVEMENT_PPS * dy);
     }
 
     // Update player sprite's animation name.

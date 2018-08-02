@@ -176,9 +176,8 @@ void debug_shade_walkable(GUI gui, GameState game_state) {
             int x = col * MAP_TILE_SZ;
             int y = row * MAP_TILE_SZ;
             // printf("x, y: %d, %d\n", x, y);
-
-            Point_Int32 pt = offset_point(gui, camera, x, y);
-            SDL_Rect rect = (SDL_Rect) {pt.x, pt.y, MAP_TILE_SZ, MAP_TILE_SZ};
+            struct pt_float pt = offset_point(gui, camera, x, y);
+            SDL_Rect rect = (SDL_Rect) {(int)pt.x, (int)pt.y, MAP_TILE_SZ, MAP_TILE_SZ};
 
             if (wall_map[row * TILES_PER_ROW + col]) {
                 SDL_SetRenderDrawColor(gui->renderer, 255, 0, 0, 25);
@@ -212,9 +211,8 @@ void debug_draw_grid(GUI gui, GameState game_state) {
             int x = col * MAP_TILE_SZ;
             int y = row * MAP_TILE_SZ;
             // printf("x, y: %d, %d\n", x, y);
-
-            Point_Int32 pt = offset_point(gui, camera, x, y);
-            SDL_Rect rect = (SDL_Rect) {pt.x, pt.y, MAP_TILE_SZ, MAP_TILE_SZ};
+            struct pt_float pt = offset_point(gui, camera, x, y);
+            SDL_Rect rect = (SDL_Rect) {(int)pt.x, (int)pt.y, MAP_TILE_SZ, MAP_TILE_SZ};
             SDL_RenderDrawRect(get_renderer(gui), &rect);
 
         }

@@ -13,7 +13,7 @@ SDL_Rect entity_bbox(struct entity *entity) {
     };
 }
 
-SDL_Rect entity_bbox_after_move(struct entity *entity, int dx, int dy) {
+SDL_Rect entity_bbox_after_move(struct entity *entity, float dx, float dy) {
     return (SDL_Rect) {
         entity->xpos + dx,
         entity->ypos + entity->sprite->ht - entity->collision_ht + dy,

@@ -11,8 +11,8 @@
 #include "point.h"
 
 void draw_image(GUI gui, Camera camera, image *image, int x, int y) {
-	Point_Int32 pt = offset_point(gui, camera, x, y);
-	SDL_Rect rect = {pt.x, pt.y, image->wd, image->ht};
+	struct pt_float pt = offset_point(gui, camera, x, y);
+	SDL_Rect rect = {(int)pt.x, (int)pt.y, image->wd, image->ht};
 	SDL_RenderCopy(get_renderer(gui), image->texture, NULL, &rect);
 	
 	/*
@@ -29,16 +29,16 @@ void draw_image_offset(GUI gui, Camera camera, image *image, int x, int y, int o
 	SDL_Rect text_rect = {off_x, off_y, wd, ht};
 
 	// Compute the position on the screen where it should be drawn.
-	Point_Int32 pt = offset_point(gui, camera, x, y);
+	struct pt_float pt = offset_point(gui, camera, x, y);
 
-	SDL_Rect dest_rect = {pt.x, pt.y, wd, ht};
+	SDL_Rect dest_rect = {(int)pt.x, (int)pt.y, wd, ht};
 	SDL_RenderCopy(get_renderer(gui), image->texture, &text_rect, &dest_rect);
 
 }
 
 void draw_rect(GUI gui, Camera camera, const int64_t x, const int64_t y, const int64_t wd, const int64_t ht) {
-	Point_Int32 pt = offset_point(gui, camera, x, y);
-	SDL_Rect rect = {pt.x, pt.y, wd, ht};
+	struct pt_float pt = offset_point(gui, camera, x, y);
+	SDL_Rect rect = {(int)pt.x, (int)pt.y, wd, ht};
 	SDL_RenderDrawRect(get_renderer(gui), &rect);
 	/*
 	SDL_Rect rect = {x, y, wd, ht};
@@ -46,8 +46,8 @@ void draw_rect(GUI gui, Camera camera, const int64_t x, const int64_t y, const i
 }
 
 void fill_rect(GUI gui, Camera camera, const int64_t x, const int64_t y, const int64_t wd, const int64_t ht) {
-	Point_Int32 pt = offset_point(gui, camera, x, y);
-	SDL_Rect rect = {pt.x, pt.y, wd, ht};
+	struct pt_float pt = offset_point(gui, camera, x, y);
+	SDL_Rect rect = {(int)pt.x, (int)pt.y, wd, ht};
 	SDL_RenderFillRect(get_renderer(gui), &rect);
 	/*
 	SDL_Rect rect = {x, y, wd, ht};

@@ -12,7 +12,7 @@
 typedef unsigned long long Milliseconds;
 
 /// Get the current time with millisecond precision. This is platform-specific.
-long time_ms(void) {
+unsigned long long time_ms(void) {
     struct timeval time_val;
     gettimeofday(&time_val, NULL);
     unsigned long long ms_since_epoch =
@@ -66,8 +66,9 @@ void process_event(SDL_Event e) {
 /// Run the main game loop.
 void run_game_loop(GUI gui, GameState game_state) {
 
-	SDL_Event e;
-	const Milliseconds MS_PER_UPDATE = (long long) (1000.0 / 60.0); // 50 FPS
+    SDL_Event e;
+    const float FPS = 180.0;
+	const Milliseconds MS_PER_UPDATE = (long long) (1000.0 / FPS);
 	Milliseconds last_update = time_ms();
 	Milliseconds lag = 0;
 	
@@ -75,9 +76,9 @@ void run_game_loop(GUI gui, GameState game_state) {
 		
 	    // Scale game events to elapsed time.
 		Milliseconds now = time_ms();
-		Milliseconds elapsed = now - last_update;
+		Milliseconds dt = now - last_update;
 		last_update = now;
-        lag += elapsed;
+        lag += dt;
 		
 	    // Poll events. This implicitly calls SDL_PumpEvents, which will update the state of the keymap under the hood,
         // so we don't have to worry about doing that just yet.
@@ -92,7 +93,7 @@ void run_game_loop(GUI gui, GameState game_state) {
             Milliseconds update_time = time_ms();
             KeyStateMap key_state = SDL_GetKeyboardState(NULL);
             update_keymaps(key_state);
-            update_game(game_state, key_state, update_time);
+            update_game(game_state, key_state, update_time, dt);
             lag -= MS_PER_UPDATE;
         }
 

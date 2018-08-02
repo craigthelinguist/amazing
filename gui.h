@@ -22,6 +22,6 @@ SDL_Renderer *get_renderer(GUI gui);
 
 const SDL_PixelFormat *get_screen_format(GUI gui);
 
-Point_Int32 offset_point(GUI gui, Camera camera, uint32_t x, uint32_t y);
+struct pt_float offset_point(GUI gui, Camera camera, uint32_t x, uint32_t y);
 
 #endif

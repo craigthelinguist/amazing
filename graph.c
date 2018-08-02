@@ -44,7 +44,9 @@ enum Direction opposite_direction(enum Direction dir) {
 void generate_maze(graph *g);
 
 graph *graph_make(int16_t width, MazeAlgo generation_algorithm) {
-	graph *g = malloc(sizeof(graph) + sizeof(int16_t) * width * width);
+
+	size_t sz = sizeof(graph) + sizeof(int16_t) * (size_t) (width * width);
+	graph *g = malloc(sz);
 	g->width = width;
 	
 	// Initialise the neighbour map.
@@ -75,7 +77,7 @@ POINT point_after_moving(POINT p, enum Direction dir) {
 	POINT p2 = make_point(p.x, p.y);
 	switch (dir) {
 		case TOP:
-			p2.y -= 1;
+		    p2.y -= 1;
 			break;
 		case LEFT:
 			p2.x -= 1;
