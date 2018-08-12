@@ -65,6 +65,9 @@ void draw_maze_layer(GUI gui, Camera camera, GameState game_state, bool upper) {
 }
 
 void draw_entities(GUI gui, GameState game_state) {
+
+    sort_entities_by_depth(game_state);
+
     Camera camera = game_state->camera;
     for (int32_t index = 0; index < game_state->num_entities; index++) {
 
@@ -77,29 +80,6 @@ void draw_entities(GUI gui, GameState game_state) {
                           entity->xpos, entity->ypos,
                           offset.x, offset.y,
                           sprite->wd, sprite->ht);
-
-        /*
-        Entity *entity = &game_state->entities[index];
-        int IMAGE_WD = SPRITE_WD;
-        int IMAGE_HT = SPRITE_HT;
-        int image_top_y = entity->ypos;
-        image *image = entity->sprite->sprite_sheet;
-
-        // The current frame of the current animation.
-        struct Offset offset = get_current_frame(entity->sprite);
-
-        draw_image_offset(gui, camera, image,
-                entity->xpos, image_top_y,
-                offset.x, offset.y,
-                SPRITE_WD, SPRITE_HT);
-        */
-
-        // set_drawcol(gui, 0, 0, 255, 0);
-
-        // DEBUG: draw entity box.
-        // SDL_Rect ebox = entity_pos(entity);
-        // SDL_SetRenderDrawColor(gui->renderer, 255, 255, 0, 255);
-        // draw_rect(gui, camera, ebox.x, ebox.y, ebox.w, ebox.h);
 
         // DEBUG: draw collision box.
         SDL_Rect bbox = entity_bbox(entity);

@@ -13,7 +13,7 @@
 #include "utils0.h"
 
 // The index containing the player.
-#define PLAYER_ENTITY_INDEX 0
+int player_entity_index = 0;
 
 static char *ASSET_DIRECTORY = "assets";
 
@@ -77,17 +77,15 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
     if (key_state[SDL_SCANCODE_DOWN]) dy += MOVEMENT_PPS * dt;
 
     // Check if player can move.
-    SDL_Rect bbox = entity_bbox_after_move(&game_state->entities[PLAYER_ENTITY_INDEX], dx, dy);
-
-    if (player_can_move(game_state, dx, dy, PLAYER_ENTITY_INDEX)) {
+    if (player_can_move(game_state, dx, dy, player_entity_index)) {
         pan_camera(game_state->camera, dx, dy);
-        game_state->entities[PLAYER_ENTITY_INDEX].xpos += (MOVEMENT_PPS * dx);
-        game_state->entities[PLAYER_ENTITY_INDEX].ypos += (MOVEMENT_PPS * dy);
+        game_state->entities[player_entity_index].xpos += (MOVEMENT_PPS * dx);
+        game_state->entities[player_entity_index].ypos += (MOVEMENT_PPS * dy);
         // fprintf(stdout, "dt = %d, moved by (%.2f, %.2f)\n", MOVEMENT_PPS * dx, MOVEMENT_PPS * dy);
     }
 
     // Update player sprite's animation name.
-    Sprite sprite = game_state->entities[PLAYER_ENTITY_INDEX].sprite;
+    Sprite sprite = game_state->entities[player_entity_index].sprite;
 
     // If LAST_DIRECTION_PRESSED is currently held down, that is where the sprite should face.
     if (KEY_DOWN_MAP[LAST_DIRECTION_PRESSED]) {
@@ -197,4 +195,22 @@ void init_game(GameState game_state, GUI gui, int16_t maze_size, MazeAlgo maze_a
         fprintf(stdout, "Exit: (%d, %d)\n", exit_pos.x, exit_pos.y);
     }
 
+}
+
+void swap(struct entity *entities, int i, int j) {
+    struct entity temp = entities[i];
+    entities[i] = entities[j];
+    entities[j] = temp;
+    if (player_entity_index == i)
+        player_entity_index = j;
+    else if (player_entity_index == j)
+        player_entity_index = i;
+}
+
+void sort_entities_by_depth(GameState game_state) {
+    // Use insertion sort; as entities won't move far between game updates, data will be nearly sorted.
+    struct entity *entities = game_state->entities;
+    for (int i = 0; i < game_state->num_entities; i++)
+        for (int j = i; j > 0 && entities[j].ypos < entities[j-1].ypos; j--)
+            swap(entities, j, j-1);
 }
