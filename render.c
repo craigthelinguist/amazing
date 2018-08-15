@@ -12,9 +12,6 @@
 #include "tile_map0.h"
 #include <unistd.h>
 
-// For the walls to look good, their width should be an even number.
-const int64_t WALL_WIDTH = 1;
-
 void draw_maze_layer(GUI gui, Camera camera, GameState game_state, struct image_sheet layer);
 void draw_entities(GUI gui, GameState game_state);
 void debug_shade_walkable(GUI gui, GameState game_state);
@@ -26,8 +23,8 @@ void render_game(GUI gui, GameState game_state) {
     draw_maze_layer(gui, camera, game_state, game_state->map_data->tileset.lower);
     draw_entities(gui, game_state);
     draw_maze_layer(gui, camera, game_state, game_state->map_data->tileset.upper);
-    if (DRAW_WALKABLE) debug_shade_walkable(gui, game_state)
-    if (DRAW_TILE_GRID) debug_draw_grid(gui, game_state)
+    if (DRAW_WALKABLE) debug_shade_walkable(gui, game_state);
+    if (DRAW_TILE_GRID) debug_draw_grid(gui, game_state);
     refresh_screen(gui);
 }
 

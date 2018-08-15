@@ -63,7 +63,7 @@ bool player_can_move(GameState game_state, float dx, float dy, int entity_index)
 void update_game(GameState game_state, KeyStateMap key_state, long long update_time, long long dt) {
 
     // How far the player should move in pixels-per-second.
-    const int MOVEMENT_PPS = 1;
+    const float MOVEMENT_PPS = 1;
 
     // Check direction player should move in.
     // TODO: if e.g. left and right are both pressed down, then the most recently pressed takes precedence.
