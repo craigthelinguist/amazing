@@ -14,7 +14,7 @@
 /// The maximum number of entities allowed in the game at once.
 #define MAX_ENTITIES 10
 
-struct GameState {
+struct game_state {
     Camera camera;
     GRAPH graph;
     map_data *map_data;

@@ -7,7 +7,7 @@
 #include "gui0.h"
 #include "keymap.h"
 
-typedef struct GameState *GameState;
+typedef struct game_state *GameState;
 
 /// Make the `game_state` update itself by a single frame.
 ///

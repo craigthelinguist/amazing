@@ -5,14 +5,10 @@
 #include "game_state0.h"
 #include "gui.h"
 
-// Drawing parameters for tiles in the maze.
-#define TILE_WIDTH 96
-#define TILE_HEIGHT 96
-
-// Whether you should draw collision boxes on entities.
-#define DRAW_COLLISION_BOXES true
-
-#define COLLISION_SIZE 32
+// Debugging options.
+#define DRAW_COLLISION_BOXES false
+#define DRAW_WALKABLE false
+#define DRAW_TILE_GRID false
 
 void render_game(GUI gui, GameState game_state);
 

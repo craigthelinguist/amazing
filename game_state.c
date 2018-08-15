@@ -45,13 +45,11 @@ bool colliding_with_other_entities(GameState game_state, SDL_Rect bbox, int enti
     // TODO: probably be improved by using a quad tree.
 
     for (int i = 0; i < game_state->num_entities; i++) {
-        if (i == entity_index) {
+        if (i == entity_index) // can't collide with yourself
             continue;
-        }
         SDL_Rect other_bbox = entity_bbox(&game_state->entities[i]);
-        if (overlapping_boxes(bbox, other_bbox)) {
+        if (overlapping_boxes(bbox, other_bbox))
             return true;
-        }
     }
     return false;
 }
@@ -140,7 +138,7 @@ void add_entity(GameState game_state, GUI gui, int32_t xpos, int32_t ypos,
 }
 
 GameState make_game_state(GUI gui) {
-    GameState game_state = calloc(1, sizeof(struct GameState));
+    GameState game_state = calloc(1, sizeof(struct game_state));
     game_state->num_entities = 0;
     return game_state;
 }
@@ -207,10 +205,10 @@ void swap(struct entity *entities, int i, int j) {
         player_entity_index = i;
 }
 
-void sort_entities_by_depth(GameState game_state) {
+void sort_entities_by_depth(struct game_state *gs) {
     // Use insertion sort; as entities won't move far between game updates, data will be nearly sorted.
-    struct entity *entities = game_state->entities;
-    for (int i = 0; i < game_state->num_entities; i++)
+    struct entity *entities = gs->entities;
+    for (int i = 0; i < gs->num_entities; i++)
         for (int j = i; j > 0 && entities[j].ypos < entities[j-1].ypos; j--)
             swap(entities, j, j-1);
 }

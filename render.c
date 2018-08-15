@@ -12,18 +12,10 @@
 #include "tile_map0.h"
 #include <unistd.h>
 
-// Some default colours.
-Colour COLOUR_FLOOR = {200, 200, 200, 255};
-Colour COLOUR_WALL = {0, 0, 0, 255};
-Colour COLOUR_FLOOR_SPECIAL = {240, 200, 200, 255};
-Colour COLOUR_BACKGROUND = {0, 0, 0, 255};
-
 // For the walls to look good, their width should be an even number.
 const int64_t WALL_WIDTH = 1;
 
-// Forward declarations.
-void draw_tile_walls(GUI gui, GameState game_state, int64_t x, int64_t y);
-void draw_maze_layer(GUI gui, Camera camera, GameState game_state, bool upper);
+void draw_maze_layer(GUI gui, Camera camera, GameState game_state, struct image_sheet layer);
 void draw_entities(GUI gui, GameState game_state);
 void debug_shade_walkable(GUI gui, GameState game_state);
 void debug_draw_grid(GUI gui, GameState game_state);
@@ -31,30 +23,29 @@ void debug_draw_grid(GUI gui, GameState game_state);
 void render_game(GUI gui, GameState game_state) {
     clear_screen(gui);
     Camera camera = game_state->camera;
-    draw_maze_layer(gui, camera, game_state, false);
+    draw_maze_layer(gui, camera, game_state, game_state->map_data->tileset.lower);
     draw_entities(gui, game_state);
-    draw_maze_layer(gui, camera, game_state, true);
+    draw_maze_layer(gui, camera, game_state, game_state->map_data->tileset.upper);
+    if (DRAW_WALKABLE) debug_shade_walkable(gui, game_state)
+    if (DRAW_TILE_GRID) debug_draw_grid(gui, game_state)
     refresh_screen(gui);
 }
 
-void draw_maze_layer(GUI gui, Camera camera, GameState game_state, bool upper) {
+void draw_maze_layer(GUI gui, Camera camera, GameState game_state, struct image_sheet layer) {
 
-    // If `upper`, draw the upper layer. Otherwise draw the lower layer.
-    struct image_sheet image_sheet = upper ?
-            game_state->map_data->tileset.upper : game_state->map_data->tileset.lower;
     const int MAZE_WD_PREFABS = game_state->map_data->maze_width_in_prefabs;
-    tileset_index *tilemap = get_tile_map(game_state->map_data);
+    tileset_index *tile_map = get_tile_map(game_state->map_data);
 
     for (int row = 0; row < MAZE_WD_PREFABS; row++) {
         for (int col = 0; col < MAZE_WD_PREFABS; col++) {
-            tileset_index ti = tilemap[row * MAZE_WD_PREFABS + col];
-            SDL_Rect draw_boundary = extract_img(&image_sheet, ti);
+            tileset_index ti = tile_map[row * MAZE_WD_PREFABS + col];
+            SDL_Rect draw_boundary = extract_img(&layer, ti);
             draw_image_offset(
                     gui,
                     camera,
-                    &image_sheet.img,
-                    col * image_sheet.img_size,
-                    row * image_sheet.img_size,
+                    &layer.img,
+                    col * layer.img_size,
+                    row * layer.img_size,
                     draw_boundary.x,
                     draw_boundary.y,
                     draw_boundary.w,
@@ -67,10 +58,9 @@ void draw_maze_layer(GUI gui, Camera camera, GameState game_state, bool upper) {
 void draw_entities(GUI gui, GameState game_state) {
 
     sort_entities_by_depth(game_state);
-
     Camera camera = game_state->camera;
-    for (int32_t index = 0; index < game_state->num_entities; index++) {
 
+    for (int32_t index = 0; index < game_state->num_entities; index++) {
         Entity *entity = &game_state->entities[index];
         int image_top_y = entity->ypos;
         struct Sprite *sprite = entity->sprite;
@@ -81,60 +71,14 @@ void draw_entities(GUI gui, GameState game_state) {
                           offset.x, offset.y,
                           sprite->wd, sprite->ht);
 
-        // DEBUG: draw collision box.
-        SDL_Rect bbox = entity_bbox(entity);
-        SDL_SetRenderDrawColor(gui->renderer, 0, 0, 255, 255);
-        draw_rect(gui, camera, bbox.x, bbox.y, bbox.w, bbox.h);
+        if (DRAW_COLLISION_BOXES) {
+            SDL_Rect bbox = entity_bbox(entity);
+            SDL_SetRenderDrawColor(gui->renderer, 0, 0, 255, 255);
+            draw_rect(gui, camera, bbox.x, bbox.y, bbox.w, bbox.h);
+        }
 
     }
 }
-
-void draw_tile_walls(GUI gui, GameState game_state, int64_t x, int64_t y) {
-
-    GRAPH graph = game_state->graph;
-    Camera camera = game_state->camera;
-
-    TILE tile = graph_has_tile_at(graph, x, y);
-    POINT p = make_point(x, y);
-
-    // Draw top wall.
-    if (!in_bounds(graph, point_after_moving(p, TOP)) || !is_connected(tile, TOP)) {
-        fill_rect(gui, camera,
-                  x * TILE_WIDTH,
-                  y * TILE_HEIGHT - WALL_WIDTH / 2,
-                  TILE_WIDTH,
-                  WALL_WIDTH);
-    }
-
-    // Draw bottom wall.
-    if (!in_bounds(graph, point_after_moving(p, DOWN)) || !is_connected(tile, DOWN)) {
-        fill_rect(gui, camera,
-                  x * TILE_WIDTH,
-                  y * TILE_HEIGHT + TILE_HEIGHT - WALL_WIDTH / 2,
-                  TILE_WIDTH,
-                  WALL_WIDTH);
-    }
-
-    // Draw right wall.
-    if (!in_bounds(graph, point_after_moving(p, RIGHT)) || !is_connected(tile, RIGHT)) {
-        fill_rect(gui, camera,
-                  x * TILE_WIDTH + TILE_WIDTH - WALL_WIDTH / 2,
-                  y * TILE_HEIGHT,
-                  WALL_WIDTH,
-                  TILE_HEIGHT);
-    }
-
-    // Draw left wall.
-    if (!in_bounds(graph, point_after_moving(p, LEFT)) || !is_connected(tile, LEFT)) {
-        fill_rect(gui, camera,
-                  x * TILE_WIDTH - WALL_WIDTH / 2,
-                  y * TILE_HEIGHT,
-                  WALL_WIDTH,
-                  TILE_HEIGHT);
-    }
-
-}
-
 
 void debug_shade_walkable(GUI gui, GameState game_state) {
 
