@@ -8,7 +8,7 @@
 #include "gui0.h"
 #include "imagelib.h"
 #include "render.h"
-#include "sprite.h"
+#include "sprite0.h"
 #include "tile_map0.h"
 #include "utils0.h"
 
@@ -60,27 +60,7 @@ bool player_can_move(GameState game_state, float dx, float dy, int entity_index)
         && !colliding_with_other_entities(game_state, bbox, entity_index);
 }
 
-void update_game(GameState game_state, KeyStateMap key_state, long long update_time, long long dt) {
-
-    // How far the player should move in pixels-per-second.
-    const float MOVEMENT_PPS = 1;
-
-    // Check direction player should move in.
-    // TODO: if e.g. left and right are both pressed down, then the most recently pressed takes precedence.
-    float dx = 0;
-    float dy = 0;
-    if (key_state[SDL_SCANCODE_LEFT]) dx -= MOVEMENT_PPS * dt;
-    if (key_state[SDL_SCANCODE_RIGHT]) dx += MOVEMENT_PPS * dt;
-    if (key_state[SDL_SCANCODE_UP]) dy -= MOVEMENT_PPS * dt;
-    if (key_state[SDL_SCANCODE_DOWN]) dy += MOVEMENT_PPS * dt;
-
-    // Check if player can move.
-    if (player_can_move(game_state, dx, dy, player_entity_index)) {
-        pan_camera(game_state->camera, dx, dy);
-        game_state->entities[player_entity_index].xpos += (MOVEMENT_PPS * dx);
-        game_state->entities[player_entity_index].ypos += (MOVEMENT_PPS * dy);
-        // fprintf(stdout, "dt = %d, moved by (%.2f, %.2f)\n", MOVEMENT_PPS * dx, MOVEMENT_PPS * dy);
-    }
+void update_player_sprite(struct game_state *game_state, long long update_time, long long dt, float dx, float dy) {
 
     // Update player sprite's animation name.
     Sprite sprite = game_state->entities[player_entity_index].sprite;
@@ -105,7 +85,7 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
         }
     }
 
-    // Otherwise if moving in either orthogonal direction , that is where the sprite should face.
+        // Otherwise if moving in either orthogonal direction , that is where the sprite should face.
     else {
         if (dx > 0) {
             set_anim_name(sprite, "right", update_time);
@@ -124,7 +104,71 @@ void update_game(GameState game_state, KeyStateMap key_state, long long update_t
     } else {
         animate(sprite, update_time);
     }
-    
+
+}
+
+void update_player(struct game_state *game_state, KeyStateMap key_state, long long update_time, long long dt) {
+
+    // How far the player should move in pixels-per-second.
+    const float MOVEMENT_PPS = 1.0f;
+    float dx = 0;
+    float dy = 0;
+    if (key_state[SDL_SCANCODE_LEFT]) dx -= MOVEMENT_PPS * dt;
+    if (key_state[SDL_SCANCODE_RIGHT]) dx += MOVEMENT_PPS * dt;
+    if (key_state[SDL_SCANCODE_UP]) dy -= MOVEMENT_PPS * dt;
+    if (key_state[SDL_SCANCODE_DOWN]) dy += MOVEMENT_PPS * dt;
+
+    // Interpolate backwards from (player.x + dx, player.y + dy) to (player.x, player.y) to see how far you can move.
+    struct entity *player = &game_state->entities[player_entity_index];
+    float player_x = player->xpos;
+    float player_y = player->ypos;
+    float dest_x = player_x + dx;
+    float dest_y = player_y + dy;
+    float hypot_dist = sqrt(dest_x * dest_x + dest_y * dest_y) - sqrt(player_x * player_x + player_y * player_y);
+    float delta_x = (dest_x - player_x) / hypot_dist;
+    float delta_y = (dest_y - player_y) / hypot_dist;
+    float new_x = dest_x;
+    float new_y = dest_y;
+
+    float step_size = 1.0;  // smaller step size = more fine-grained interpolation.
+    // TODO: smaller step_size causes jitter
+
+    for (float stepper = fabs(hypot_dist); stepper > 0; stepper -= step_size, new_x -= delta_x, new_y -= delta_y) {
+        SDL_Rect position = (SDL_Rect) { new_x, new_y + player->sprite->ht - player->collision_ht, player->collision_wd, player->collision_ht };
+        if (!is_box_colliding(game_state->map_data, position) && !colliding_with_other_entities(game_state, position, player_entity_index)) {
+            pan_camera(game_state->camera, new_x - player_x, new_y - player_y);
+            player->xpos = new_x;
+            player->ypos = new_y;
+            break;
+        }
+    }
+
+    update_player_sprite(game_state, update_time, dt, dx, dy);
+
+
+    // Below is the older, simpler code which doesn't perform interpolation.
+
+    /*
+    bool player_can_move(GameState game_state, float dx, float dy, int entity_index) {
+        SDL_Rect bbox = entity_bbox_after_move(&game_state->entities[entity_index], dx, dy);
+        return !is_box_colliding(game_state->map_data, bbox)
+            && !colliding_with_other_entities(game_state, bbox, entity_index);
+    }
+    */
+
+    /*
+    if (player_can_move(game_state, dx, dy, player_entity_index)) {
+        pan_camera(game_state->camera, MOVEMENT_PPS * dx, MOVEMENT_PPS * dy);
+        game_state->entities[player_entity_index].xpos += (MOVEMENT_PPS * dx);
+        game_state->entities[player_entity_index].ypos += (MOVEMENT_PPS * dy);
+        // fprintf(stdout, "dt = %d, moved by (%.2f, %.2f)\n", MOVEMENT_PPS * dx, MOVEMENT_PPS * dy);
+    }
+     */
+
+}
+
+void update_game(GameState game_state, KeyStateMap key_state, long long update_time, long long dt) {
+    update_player(game_state, key_state, update_time, dt);
 }
 
 void add_entity(GameState game_state, GUI gui, int32_t xpos, int32_t ypos,
